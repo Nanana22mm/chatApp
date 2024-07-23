@@ -8,10 +8,12 @@ div {
 }
 
 .style1 {
-}
-
-.style2 {
-}
-
-.style3 {
-}
+  background-color: #00B7FF;
+ }
+ .style2 {
+  color: #ff0000;
+ }
+ .style3 {
+  font-size: 50px;
+ }
+ 
