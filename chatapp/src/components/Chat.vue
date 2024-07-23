@@ -37,6 +37,7 @@ const onExit = () => {
 // メモを画面上に表示する
 const onMemo = () => {
   // メモの内容を表示
+  chatList.push()
 
   // 入力欄を初期化
 
