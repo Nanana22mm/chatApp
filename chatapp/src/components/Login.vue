@@ -18,10 +18,14 @@ const inputUserName = ref("")
 
 // #region browser event handler
 // 入室メッセージをクライアントに送信する
-const onEnter = () => {
+const onEnter = (data) => {
   // ユーザー名が入力されているかチェック
+  if (!data) {
+    return // TODO: error dialog
+  }
 
   // 入室メッセージを送信
+  
 
   // 全体で使用するnameに入力されたユーザー名を格納
 
