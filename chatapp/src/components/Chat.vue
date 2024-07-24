@@ -37,9 +37,20 @@ const onExit = () => {
 // メモを画面上に表示する
 const onMemo = () => {
   // メモの内容を表示
-  chatList.push()
+  if (chatContent.value.trim().length === 0) {
+    alert("メモを入力してください。");
+    return;
+  }
+  // const memo = {
+  //   content: chatContent.value,
+  //   // timestamp: new Date()  // タイムスタンプを追加
+  // };
+  // chatList.push(memo);  // オブジェクトとしてメモを追加
+  chatList.push("メモ: " + chatContent.value);
+
 
   // 入力欄を初期化
+  chatContent.value = "";
 
 }
 // #endregion
@@ -87,14 +98,14 @@ const registerSocketEvent = () => {
     <h1 class="text-h3 font-weight-medium">Vue.js Chat チャットルーム</h1>
     <div class="mt-10">
       <p>ログインユーザ：{{ userName }}さん</p>
-      <textarea variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area"></textarea>
+      <textarea v-model="chatContent" placeholder="投稿文を入力してください" rows="4" class="area"></textarea>
       <div class="mt-5">
         <button class="button-normal">投稿</button>
-        <button class="button-normal util-ml-8px">メモ</button>
+        <button @click="onMemo" class="button-normal util-ml-8px">メモ</button>
       </div>
       <div class="mt-5" v-if="chatList.length !== 0">
         <ul>
-          <li class="item mt-4" v-for="(chat, i) in chatList" :key="i">{{ chat }}</li>
+          <li v-for="(item, i) in chatList" :key="i">{{ item }}</li>
         </ul>
       </div>
     </div>
