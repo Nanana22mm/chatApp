@@ -1,84 +1,74 @@
 <script setup>
-import { inject, ref, reactive, onMounted } from "vue"
-import socketManager from '../socketManager.js'
+import { inject, ref, reactive, onMounted } from "vue";
+import { useRouter } from 'vue-router';
+import socketManager from '../socketManager.js';
 
-// #region global state
-const userName = inject("userName")
-// #endregion
+const userName = inject('userName', ref(''));
+const router = useRouter();
+const socket = socketManager.getInstance();
+const chatContent = ref('');
+const chatList = reactive([]);
 
-// #region local variable
-const socket = socketManager.getInstance()
-// #endregion
-
-// #region reactive variable
-const chatContent = ref("")
-const chatList = reactive([])
-// #endregion
-
-// #region lifecycle
 onMounted(() => {
-  registerSocketEvent()
+  registerSocketEvent();
 })
-// #endregion
 
-// #region browser event handler
 // 投稿メッセージをサーバに送信する
 const onPublish = () => {
 
-  // 入力欄を初期化
+  if (!chatContent.value) return
 
+  //投稿時の処理
+  const  message = { user: userName.value, content: chatContent.value };
+  socket.emit( 'publishEvent', message );
+
+  //投稿後メッセージ入力欄を空にする
+  chatContent.value = '';
 }
 
 // 退室メッセージをサーバに送信する
 const onExit = () => {
-
+  socket.emit('existEvent', userName.value );
+  router.push({ name: 'enter'});
 }
 
 // メモを画面上に表示する
 const onMemo = () => {
+  // 入力が空の場合の処理
+  if (!chatContent.value) return
+
   // メモの内容を表示
+  chatList.push(chatContent.value);
 
   // 入力欄を初期化
-
+  chatContent.value = '';
 }
-// #endregion
 
-// #region socket event handler
 // サーバから受信した入室メッセージ画面上に表示する
 const onReceiveEnter = (data) => {
-  chatList.push()
+  chatList.push(`${data}さんが入室しました。`);
 }
 
 // サーバから受信した退室メッセージを受け取り画面上に表示する
 const onReceiveExit = (data) => {
-  chatList.push()
+  chatList.push(`${data}さんが退出しました。`);
 }
 
 // サーバから受信した投稿メッセージを画面上に表示する
 const onReceivePublish = (data) => {
-  chatList.push()
+  chatList.push(`${data.user}さん: ${data.content}`);
 }
-// #endregion
 
-// #region local methods
 // イベント登録をまとめる
 const registerSocketEvent = () => {
   // 入室イベントを受け取ったら実行
-  socket.on("enterEvent", (data) => {
-
-  })
-
+  socket.on("enterEvent", onReceiveEnter);
   // 退室イベントを受け取ったら実行
-  socket.on("exitEvent", (data) => {
-
-  })
-
+  socket.on("exitEvent", onReceiveExit);
   // 投稿イベントを受け取ったら実行
-  socket.on("publishEvent", (data) => {
-
-  })
+  socket.on("publishEvent", onReceivePublish);
 }
-// #endregion
+
 </script>
 
 <template>
@@ -86,10 +76,10 @@ const registerSocketEvent = () => {
     <h1 class="text-h3 font-weight-medium">Vue.js Chat チャットルーム</h1>
     <div class="mt-10">
       <p>ログインユーザ：{{ userName }}さん</p>
-      <textarea variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area"></textarea>
+      <textarea v-model="chatContent" variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area"></textarea>
       <div class="mt-5">
-        <button class="button-normal">投稿</button>
-        <button class="button-normal util-ml-8px">メモ</button>
+        <button @click="onPublish" class="button-normal">投稿</button>
+        <button @click="onMemo" class="button-normal util-ml-8px">メモ</button>
       </div>
       <div class="mt-5" v-if="chatList.length !== 0">
         <ul>
