@@ -28,8 +28,10 @@ const onPublish = () => {
     alert("投稿を入力してください。")
     return
   }
+  const chatTime = new Date()
+  var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
 
-  socket.emit("publishEvent",  userName.value, chatContent.value)
+  socket.emit("publishEvent", Time, userName.value, chatContent.value)
 
   // 入力欄を初期化
   chatContent.value = ""
@@ -46,8 +48,12 @@ const onMemo = () => {
     alert("メモを入力してください。")
     return
   }
+
+  const chatTime = new Date()
+  var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
+
   // メモの内容を表示
-  chatList.unshift(`${userName.value}さんのメモ: ` + chatContent.value)
+  chatList.unshift(`${userName.value}さんのメモ [${Time}]: ` + chatContent.value)
 
   // 入力欄を初期化
   chatContent.value = ""
@@ -66,8 +72,8 @@ const onReceiveExit = (data) => {
 }
 
 // サーバから受信した投稿メッセージを画面上に表示する
-const onReceivePublish = (name, data) => {
-  chatList.unshift(`${name}さんの投稿: ${data}`)
+const onReceivePublish = (time, name, data) => {
+  chatList.unshift(`${name}さんの投稿 [${time}]: ${data}`)
 }
 // #endregion
 
@@ -85,8 +91,8 @@ const registerSocketEvent = () => {
   })
 
   // 投稿イベントを受け取ったら実行
-  socket.on("publishEvent", (name, data) => {
-    onReceivePublish(name, data)
+  socket.on("publishEvent", (time, name, data) => {
+    onReceivePublish(time, name, data)
   })
 }
 // #endregion
