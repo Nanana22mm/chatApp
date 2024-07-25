@@ -16,6 +16,6 @@ export default (io, socket) => {
 
   // memo を送信する
   socket.on("publishMemo", (data) => {
-    io.sockets.emit("publishMemo", data)
+    socket.emit("publishMemo", data)
   })
 }

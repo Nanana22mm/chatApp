@@ -20,21 +20,12 @@ const inputUserName = ref("")
 // 入室メッセージをクライアントに送信する
 const onEnter = (data) => {
   // ユーザー名が入力されているかチェック
-<<<<<<< HEAD
-  if (!data) {
-    return // TODO: error dialog
-  }
-
-  // 入室メッセージを送信
-  
-=======
   if (!inputUserName.value) {
     alert("ユーザー名を入力してください。")
     return
   }
   // 入室メッセージを送信
   socket.emit("enterEvent", inputUserName.value)
->>>>>>> f2ec4b0 (入室と退室の表示)
 
   // 全体で使用するnameに入力されたユーザー名を格納
   userName.value = inputUserName.value

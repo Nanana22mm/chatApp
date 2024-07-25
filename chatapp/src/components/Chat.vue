@@ -35,9 +35,9 @@ const onExit = () => {
 }
 
 // メモを画面上に表示する
-const onMemo = () => {
+const onMemo = (data) => {
   // メモの内容を表示
-  chatList.push("さんのメモ: " + chatContent.value)
+  chatList.push("${data}さんのメモ: " + chatContent.value)
 
   // 入力欄を初期化
   chatContent.value = ""
@@ -76,7 +76,7 @@ const registerSocketEvent = () => {
 
   // 投稿イベントを受け取ったら実行
   socket.on("publishEvent", (data) => {
-
+    onReceivePublish(data)
   })
 }
 // #endregion
