@@ -18,7 +18,7 @@ const inputUserName = ref("")
 
 // #region browser event handler
 // 入室メッセージをクライアントに送信する
-const onEnter = () => {
+const onEnter = (data) => {
   // ユーザー名が入力されているかチェック
   if (!inputUserName.value) {
     alert("ユーザー名を入力してください。")
