@@ -24,7 +24,7 @@ onMounted(() => {
 // #region browser event handler
 // 投稿メッセージをサーバに送信する
 const onPublish = () => {
-  socket.emit("publishEvent", chatContent.value)
+  socket.emit("publishEvent",  userName.value, chatContent.value)
 
   // 入力欄を初期化
   chatContent.value = ""
@@ -36,7 +36,7 @@ const onExit = () => {
 }
 
 // メモを画面上に表示する
-const onMemo = (data) => {
+const onMemo = () => {
   // メモの内容を表示
   chatList.unshift(`${userName.value}さんのメモ: ` + chatContent.value)
 
@@ -57,8 +57,8 @@ const onReceiveExit = (data) => {
 }
 
 // サーバから受信した投稿メッセージを画面上に表示する
-const onReceivePublish = (data) => {
-  chatList.unshift(`${userName.value}さんの投稿: ${data}`)
+const onReceivePublish = (name, data) => {
+  chatList.unshift(`${name}さんの投稿: ${data}`)
 }
 // #endregion
 
@@ -76,8 +76,8 @@ const registerSocketEvent = () => {
   })
 
   // 投稿イベントを受け取ったら実行
-  socket.on("publishEvent", (data) => {
-    onReceivePublish(data)
+  socket.on("publishEvent", (name, data) => {
+    onReceivePublish(name, data)
   })
 }
 // #endregion
