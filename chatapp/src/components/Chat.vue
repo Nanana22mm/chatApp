@@ -42,7 +42,7 @@ const onExit = () => {
 
 // メモを画面上に表示する
 const onMemo = () => {
-  if (!chatContent.value) {
+  if (!chatContent.value || chatContent.value.match(/^\s*$/g)) {
     alert("メモを入力してください。")
     return
   }
