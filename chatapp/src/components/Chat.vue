@@ -24,10 +24,11 @@ onMounted(() => {
 // #region browser event handler
 // 投稿メッセージをサーバに送信する
 const onPublish = () => {
-  if (!chatContent.value) {
+  if (!chatContent.value || chatContent.value.match(/^\s*$/g)) {
     alert("投稿を入力してください。")
     return
   }
+
   socket.emit("publishEvent",  userName.value, chatContent.value)
 
   // 入力欄を初期化
@@ -126,6 +127,7 @@ const registerSocketEvent = () => {
 
 .item {
   display: block;
+  white-space: pre-line;
 }
 
 .util-ml-8px {
