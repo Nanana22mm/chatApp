@@ -24,51 +24,56 @@ onMounted(() => {
 // #region browser event handler
 // 投稿メッセージをサーバに送信する
 const onPublish = () => {
+  if (!chatContent.value || chatContent.value.match(/^\s*$/g)) {
+    alert("投稿を入力してください。")
+    return
+  }
+  const chatTime = new Date()
+  var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
+
+  socket.emit("publishEvent", Time, userName.value, chatContent.value)
 
   // 入力欄を初期化
-
+  chatContent.value = ""
 }
 
 // 退室メッセージをサーバに送信する
 const onExit = () => {
-
+  socket.emit("exitEvent", userName.value)
 }
 
 // メモを画面上に表示する
 const onMemo = () => {
-  // メモの内容を表示
-  if (chatContent.value.trim().length === 0) {
-    alert("メモを入力してください。");
-    return;
+  if (!chatContent.value || chatContent.value.match(/^\s*$/g)) {
+    alert("メモを入力してください。")
+    return
   }
-  // const memo = {
-  //   content: chatContent.value,
-  //   // timestamp: new Date()  // タイムスタンプを追加
-  // };
-  // chatList.push(memo);  // オブジェクトとしてメモを追加
-  chatList.push("メモ: " + chatContent.value);
 
+  const chatTime = new Date()
+  var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
+
+  // メモの内容を表示
+  chatList.unshift(`${userName.value}さんのメモ [${Time}]: ` + chatContent.value)
 
   // 入力欄を初期化
-  chatContent.value = "";
-
+  chatContent.value = ""
 }
 // #endregion
 
 // #region socket event handler
 // サーバから受信した入室メッセージ画面上に表示する
 const onReceiveEnter = (data) => {
-  chatList.push()
+  chatList.unshift(`${data}さんが入室しました。`)
 }
 
 // サーバから受信した退室メッセージを受け取り画面上に表示する
 const onReceiveExit = (data) => {
-  chatList.push()
+  chatList.unshift(`${data}さんが退室しました。`)
 }
 
 // サーバから受信した投稿メッセージを画面上に表示する
-const onReceivePublish = (data) => {
-  chatList.push()
+const onReceivePublish = (time, name, data) => {
+  chatList.unshift(`${name}さんの投稿 [${time}]: ${data}`)
 }
 // #endregion
 
@@ -77,17 +82,17 @@ const onReceivePublish = (data) => {
 const registerSocketEvent = () => {
   // 入室イベントを受け取ったら実行
   socket.on("enterEvent", (data) => {
-
+    onReceiveEnter(data)
   })
 
   // 退室イベントを受け取ったら実行
   socket.on("exitEvent", (data) => {
-
+    onReceiveExit(data)
   })
 
   // 投稿イベントを受け取ったら実行
-  socket.on("publishEvent", (data) => {
-
+  socket.on("publishEvent", (time, name, data) => {
+    onReceivePublish(time, name, data)
   })
 }
 // #endregion
@@ -98,10 +103,10 @@ const registerSocketEvent = () => {
     <h1 class="text-h3 font-weight-medium">Vue.js Chat チャットルーム</h1>
     <div class="mt-10">
       <p>ログインユーザ：{{ userName }}さん</p>
-      <textarea v-model="chatContent" placeholder="投稿文を入力してください" rows="4" class="area"></textarea>
+      <textarea variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area" v-model="chatContent"></textarea>
       <div class="mt-5">
-        <button class="button-normal">投稿</button>
-        <button @click="onMemo" class="button-normal util-ml-8px">メモ</button>
+        <button class="button-normal" @click="onPublish">投稿</button>
+        <button class="button-normal util-ml-8px"  @click="onMemo">メモ</button>
       </div>
       <div class="mt-5" v-if="chatList.length !== 0">
         <ul>
@@ -128,6 +133,7 @@ const registerSocketEvent = () => {
 
 .item {
   display: block;
+  white-space: pre-line;
 }
 
 .util-ml-8px {
