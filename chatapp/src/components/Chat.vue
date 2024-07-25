@@ -15,58 +15,72 @@ onMounted(() => {
 
 // 投稿メッセージをサーバに送信する
 const onPublish = () => {
+  if (!chatContent.value || chatContent.value.match(/^\s*$/g)) {
+    alert("投稿を入力してください。")
+    return
+  }
+  const chatTime = new Date()
+  var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
 
-  if (!chatContent.value) return
+  socket.emit("publishEvent", Time, userName.value, chatContent.value)
 
-  //投稿時の処理
-  const  message = { user: userName.value, content: chatContent.value };
-  socket.emit( 'publishEvent', message );
-
-  //投稿後メッセージ入力欄を空にする
-  chatContent.value = '';
+  // 入力欄を初期化
+  chatContent.value = ""
 }
 
 // 退室メッセージをサーバに送信する
 const onExit = () => {
-  socket.emit('existEvent', userName.value );
-  router.push({ name: 'enter'});
+  socket.emit("exitEvent", userName.value)
 }
 
 // メモを画面上に表示する
 const onMemo = () => {
-  // 入力が空の場合の処理
-  if (!chatContent.value) return
+  if (!chatContent.value || chatContent.value.match(/^\s*$/g)) {
+    alert("メモを入力してください。")
+    return
+  }
+
+  const chatTime = new Date()
+  var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
 
   // メモの内容を表示
-  chatList.push(chatContent.value);
+  chatList.unshift(`${userName.value}さんのメモ [${Time}]: ` + chatContent.value)
 
   // 入力欄を初期化
-  chatContent.value = '';
+  chatContent.value = ""
 }
 
 // サーバから受信した入室メッセージ画面上に表示する
 const onReceiveEnter = (data) => {
-  chatList.push(`${data}さんが入室しました。`);
+  chatList.unshift(`${data}さんが入室しました。`)
 }
 
 // サーバから受信した退室メッセージを受け取り画面上に表示する
 const onReceiveExit = (data) => {
-  chatList.push(`${data}さんが退出しました。`);
+  chatList.unshift(`${data}さんが退室しました。`)
 }
 
 // サーバから受信した投稿メッセージを画面上に表示する
-const onReceivePublish = (data) => {
-  chatList.push(`${data.user}さん: ${data.content}`);
+const onReceivePublish = (time, name, data) => {
+  chatList.unshift(`${name}さんの投稿 [${time}]: ${data}`)
 }
 
 // イベント登録をまとめる
 const registerSocketEvent = () => {
   // 入室イベントを受け取ったら実行
-  socket.on("enterEvent", onReceiveEnter);
+  socket.on("enterEvent", (data) => {
+    onReceiveEnter(data)
+  })
+
   // 退室イベントを受け取ったら実行
-  socket.on("exitEvent", onReceiveExit);
+  socket.on("exitEvent", (data) => {
+    onReceiveExit(data)
+  })
+
   // 投稿イベントを受け取ったら実行
-  socket.on("publishEvent", onReceivePublish);
+  socket.on("publishEvent", (time, name, data) => {
+    onReceivePublish(time, name, data)
+  })
 }
 
 </script>
@@ -76,10 +90,10 @@ const registerSocketEvent = () => {
     <h1 class="text-h3 font-weight-medium">Vue.js Chat チャットルーム</h1>
     <div class="mt-10">
       <p>ログインユーザ：{{ userName }}さん</p>
-      <textarea v-model="chatContent" variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area"></textarea>
+      <textarea variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area" v-model="chatContent"></textarea>
       <div class="mt-5">
-        <button @click="onPublish" class="button-normal">投稿</button>
-        <button @click="onMemo" class="button-normal util-ml-8px">メモ</button>
+        <button class="button-normal" @click="onPublish">投稿</button>
+        <button class="button-normal util-ml-8px"  @click="onMemo">メモ</button>
       </div>
       <div class="mt-5" v-if="chatList.length !== 0">
         <ul>
@@ -106,6 +120,7 @@ const registerSocketEvent = () => {
 
 .item {
   display: block;
+  white-space: pre-line;
 }
 
 .util-ml-8px {
