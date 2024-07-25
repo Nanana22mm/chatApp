@@ -10,12 +10,7 @@ export default (io, socket) => {
   })
 
   // 投稿メッセージを送信する
-  socket.on("publishEvent", (data) => {
-    io.sockets.emit("publishEvent", data)
-  })
-
-  // memo を送信する
-  socket.on("publishMemo", (data) => {
-    socket.emit("publishMemo", data)
+  socket.on("publishEvent", (name, data) => {
+    io.sockets.emit("publishEvent", name, data)
   })
 }
