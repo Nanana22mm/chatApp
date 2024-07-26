@@ -10,7 +10,7 @@ const router = createRouter({
       name: "login",
       component: Login
     },{
-      path: "/chat/",
+      path: "/chat/:roomName",
       name: "chat",
       component: Chat,
       beforeEnter: (to, from, next) => {

@@ -1,12 +1,15 @@
 <script setup>
-import { inject, ref, reactive, onMounted } from "vue"
+import { inject, ref, reactive, onMounted} from "vue"
+import { useRouter } from "vue-router"
 import socketManager from '../socketManager.js'
 
 // #region global state
 const userName = inject("userName")
+const roomName = inject("roomName")
 // #endregion
 
 // #region local variable
+const router = useRouter()
 const socket = socketManager.getInstance()
 // #endregion
 
@@ -18,7 +21,9 @@ const chatList = reactive([])
 // #region lifecycle
 onMounted(() => {
   registerSocketEvent()
+  socket.emit("joinRoom", roomName.value)
 })
+
 // #endregion
 
 // #region browser event handler
@@ -31,7 +36,7 @@ const onPublish = () => {
   const chatTime = new Date()
   var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
 
-  socket.emit("publishEvent", Time, userName.value, chatContent.value)
+  socket.emit("publishEvent",roomName.value, Time, userName.value, chatContent.value)
 
   // 入力欄を初期化
   chatContent.value = ""
@@ -39,7 +44,7 @@ const onPublish = () => {
 
 // 退室メッセージをサーバに送信する
 const onExit = () => {
-  socket.emit("exitEvent", userName.value)
+  socket.emit("exitEvent", userName.value, roomName.value)
 }
 
 // メモを画面上に表示する
