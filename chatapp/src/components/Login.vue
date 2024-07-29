@@ -70,6 +70,24 @@ onMounted(() => {
   }
 })
 // #endregion
+//ユーザー名の配列
+const userList = []
+//ユーザー名の重複を判別するbooleen
+const userFlag = false
+
+// ユーザー名の重複を判別するメソッド
+const onSubmit = ()=>{ 
+//ユーザー名に重複がないか確認 
+  userFlag = userList.includes(userName)
+  if (userFlag === false) {
+    userList.push(userName)
+    //ユーザー名をサーバーに送信
+  inject("userList")
+  }else{
+    alert("ユーザー名が重複しています。別のユーザー名を入力してください。")
+    return
+  }
+}
 
 // #region browser event handler
 // 入室メッセージをクライアントに送信する
