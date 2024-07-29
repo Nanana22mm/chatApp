@@ -21,8 +21,14 @@ const showModal = ref(false);
 
 // #region lifecycle
 onMounted(() => {
+  socket.on("initializeReplyEvent", posts => {
+    posts.forEach(({name, time, data}) => {
+      chatList.unshift(`${name}さんの投稿 [${time}]: ${data}`);
+    });
+  });
   registerSocketEvent()
   socket.emit("joinRoom", roomName.value)
+  socket.emit("initializeRequestEvent");
 })
 
 // #endregion
