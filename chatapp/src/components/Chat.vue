@@ -25,18 +25,9 @@ const memoList = reactive([])
 const showModal = ref(false);
 // #endregion
 
-//ユーザーリスト取得
-const userList = inject("userList")
-console.log(userList)
-
-// #region local variable
-const socket = socketManager.getInstance()
-// #endregion
-
-// #region reactive variable
-const chatContent = ref("")
-const chatList = reactive([])
-// #endregion
+// //ユーザーリスト取得
+// const userList = inject("userList")
+// console.log(userList)
 
 // #region lifecycle
 
@@ -251,7 +242,7 @@ const openModal = () => {
 const closeModal = () => {
   showModal.value = false;
 }
-}
+
 </script>
 
 <template>

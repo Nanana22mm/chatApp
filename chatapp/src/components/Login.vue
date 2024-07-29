@@ -122,25 +122,26 @@ const onEnter = (data) => {
 
   // チャット画面へ遷移
   router.push({ name: "chat", params: { roomName: room }})
+
+  // 全体で使用するnameに入力されたユーザー名を格納
+  userName.value = inputUserName.value
+  //ユーザー名に重複がないか確認 
+  userFlag = userList.includes(userName.value)
+  if (userFlag === false) {
+    userList.push(userName.value)
+    // 入室メッセージを送信
+    socket.emit("enterEvent", inputUserName.value)
+    
     // 全体で使用するnameに入力されたユーザー名を格納
     userName.value = inputUserName.value
-    //ユーザー名に重複がないか確認 
-    userFlag = userList.includes(userName.value)
-    if (userFlag === false) {
-      userList.push(userName.value)
-      // 入室メッセージを送信
-      socket.emit("enterEvent", inputUserName.value)
-      
-      // 全体で使用するnameに入力されたユーザー名を格納
-      userName.value = inputUserName.value
-      //サーバーへユーザーリストのデータを送信
-      provide ('userList', userList)
-      // //チャット画面へ遷移
-      // router.push({ name: "chat" })
-    }else{
-      alert("ユーザー名が重複しています。別のユーザー名を入力してください。")
-      return
-    }
+    //サーバーへユーザーリストのデータを送信
+    provide ('userList', userList)
+    // //チャット画面へ遷移
+    // router.push({ name: "chat" })
+  }else{
+    alert("ユーザー名が重複しています。別のユーザー名を入力してください。")
+    return
+  }
 }
 // #endregion
 
