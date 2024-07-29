@@ -16,6 +16,7 @@ const socket = socketManager.getInstance()
 // #region reactive variable
 const chatContent = ref("")
 const chatList = reactive([])
+const showModal = ref(false);
 // #endregion
 
 // #region lifecycle
@@ -26,7 +27,6 @@ onMounted(() => {
 
 // #endregion
 
-// #region browser event handler
 // 投稿メッセージをサーバに送信する
 const onPublish = () => {
   if (!chatContent.value || chatContent.value.match(/^\s*$/g)) {
@@ -44,6 +44,7 @@ const onPublish = () => {
 
 // 退室メッセージをサーバに送信する
 const onExit = () => {
+  showModal.value = false;
   socket.emit("exitEvent", userName.value, roomName.value)
 }
 
@@ -63,9 +64,7 @@ const onMemo = () => {
   // 入力欄を初期化
   chatContent.value = ""
 }
-// #endregion
 
-// #region socket event handler
 // サーバから受信した入室メッセージ画面上に表示する
 const onReceiveEnter = (data) => {
   chatList.unshift(`${data}さんが入室しました。`)
@@ -80,9 +79,7 @@ const onReceiveExit = (data) => {
 const onReceivePublish = (time, name, data) => {
   chatList.unshift(`${name}さんの投稿 [${time}]: ${data}`)
 }
-// #endregion
 
-// #region local methods
 // イベント登録をまとめる
 const registerSocketEvent = () => {
   // 入室イベントを受け取ったら実行
@@ -100,10 +97,33 @@ const registerSocketEvent = () => {
     onReceivePublish(time, name, data)
   })
 }
-// #endregion
+/*Open Modal*/
+const openModal = () => {
+  showModal.value = true;
+}
+/*Close Modal*/
+const closeModal = () => {
+  showModal.value = false;
+}
 </script>
 
 <template>
+  <!--Modal Window-->
+  <div id="app">
+    <div v-if="showModal" id="overlay" @click="closeModal">
+      <div id="content" @click.stop>
+        <p id="modal-message">本当に退室しますか？</p>
+        <div class="d-flex justify-content-end">
+          <router-link to="/" class="link">
+            <button class="btn btn-primary" @click="onExit">はい</button>
+          </router-link>
+          <p>　</p>
+          <button class="btn btn-secondary" @click="closeModal">いいえ</button>
+        </div>
+      </div>
+    </div>
+  <!--End Modal Window-->
+
   <div class="mx-auto my-5 px-4">
     <h1 class="text-h3 font-weight-medium">Vue.js Chat チャットルーム</h1>
     <div class="mt-10">
@@ -119,10 +139,9 @@ const registerSocketEvent = () => {
         </ul>
       </div>
     </div>
-    <router-link to="/" class="link">
-      <button type="button" class="button-normal button-exit" @click="onExit">退室する</button>
-    </router-link>
+    <button type="button" class="button-normal button-exit" @click="openModal">退室する</button>
   </div>
+</div>
 </template>
 
 <style scoped>
@@ -148,5 +167,29 @@ const registerSocketEvent = () => {
 .button-exit {
   color: #000;
   margin-top: 8px;
+}
+/*Modal CSS*/
+#overlay{
+  z-index:1;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background-color:rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#content{
+  z-index:2;
+  width:50%;
+  padding: 1em;
+  background:#fff;
+  border-radius: 15px;
+}
+#modal-message{
+  font-weight: bold;
+  font-size: larger; 
 }
 </style>
