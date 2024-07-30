@@ -162,14 +162,8 @@ const registerSocketEvent = () => {
     if (chatList[data.index]) {
       chatList[data.index].content = data.newContent;
     }
-  })
-
-  socket.on("receiveDelitePublishEvent", function(data) {
-    if (chatList[data.index]) {
-      chatList[data.index].content = data.newContent;
-    }
-  })
-
+  })  
+  // 削除された投稿を受信して更新する
   socket.on("receiveDeletePublishEvent", (data) => {
     if (chatList[data.index]) {
       chatList.splice(data.index, 1);
