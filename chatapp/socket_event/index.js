@@ -1,8 +1,6 @@
 import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
 
-// TODO: initialize/read db + send data to client
-// if get data, push it into db
 async function setupDB() {
   const db = await open({
     filename: 'database.db',
@@ -14,14 +12,12 @@ async function setupDB() {
 }
 
 async function insertChatData(name, data, time) {
-  // FIX: don't ignore errors
   const db = await setupDB();
   if (!db) {
+    console.log('cannot open database');
     return;
   }
 
-  // DONT: SQL injection
-  // await db.run(`INSERT INTO chatList (name, data, time) VALUES (${name}, ${data}, ${time})`).then(result => {
   await db.run('INSERT INTO chatList (name, data, time) VALUES (?, ?, ?)', name, data, time).then(result => {
     console.log(`insert success: ${data}, ${name}, ${time}`);
   }).catch(error => {
@@ -33,9 +29,9 @@ async function insertChatData(name, data, time) {
 }
 
 async function initializeData() {
-  // FIX: don't ignore errors
   const db = await setupDB();
   if (!db) {
+    console.log('cannot open database');
     return [];
   }
 
