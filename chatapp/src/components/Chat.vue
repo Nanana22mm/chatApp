@@ -16,6 +16,7 @@ const socket = socketManager.getInstance()
 // #region reactive variable
 const chatContent = ref("")
 const chatList = reactive([])
+const memoList = reactive([])
 const showModal = ref(false);
 // #endregion
 
@@ -66,7 +67,7 @@ const onMemo = () => {
 
   // // メモの内容を表示
   // chatList.unshift(`${userName.value}さんのメモ [${Time}]: ` + chatContent.value)
-  chatList.unshift({
+  memoList.unshift({
     time: Time,
     user: userName.value,
     content: chatContent.value,
@@ -79,14 +80,14 @@ const onMemo = () => {
 
 // メモを削除する
 const onDeleteMemo = (index) => {
-  chatList.splice(index, 1)
+  memoList.splice(index, 1)
 }
 
 // メモを編集する
 const onEditMemo = (index) => {
-  const newContent = prompt("メモを編集してください：", chatList[index].content)
+  const newContent = prompt("メモを編集してください：", memoList[index].content)
   if (newContent !== null && newContent !== "") {
-    chatList[index].content = newContent
+    memoList[index].content = newContent
   }
 }
 
@@ -215,15 +216,26 @@ const closeModal = () => {
         <button class="button-normal" @click="onPublish">投稿</button>
         <button class="button-normal util-ml-8px"  @click="onMemo">メモ</button>
       </div>
-      <div class="mt-5" v-if="chatList.length !== 0">
+      <div class="mt-5" v-if="memoList.length !== 0">
         <ul>
-          <li v-for="(chat, i) in chatList" :key="i">
+          <li v-for="(chat, i) in memoList" :key="i">
             <template v-if="chat.type === 'memo'">
               {{ chat.user }}さんのメモ [{{ chat.time }}]: {{ chat.content }}
               <button @click="onEditMemo(i)">編集</button>
               <button @click="onDeleteMemo(i)">削除</button>
             </template>
-            <template v-else-if="chat.type === 'publish'">
+          </li>
+        </ul>
+      </div>
+      <div class="mt-5" v-if="chatList.length !== 0">
+        <ul>
+          <li v-for="(chat, i) in chatList" :key="i">
+            <!-- <template v-if="chat.type === 'memo'">
+              {{ chat.user }}さんのメモ [{{ chat.time }}]: {{ chat.content }}
+              <button @click="onEditMemo(i)">編集</button>
+              <button @click="onDeleteMemo(i)">削除</button>
+            </template> -->
+            <template v-if="chat.type === 'publish'">
               {{ chat.user }}さんの投稿 [{{ chat.time }}]: {{ chat.content }}
               <button v-if="chat.user === userName" @click="onEditPublish(i)">編集</button>
               <button v-if="chat.user === userName" @click="onDeletePublish(i)">削除</button>
