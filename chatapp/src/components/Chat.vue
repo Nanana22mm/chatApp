@@ -130,7 +130,7 @@ const onReceivePublish = (time, name, data) => {
 // 投稿を削除する
 const onDeletePublish = (index) => {
   chatList.splice(index, 1);
-  socket.emit("deletePublishEvent", {
+  socket.emit("deletePublishEvent", roomName.value, {
       index: index
     });
 }
@@ -140,7 +140,7 @@ const onEditPublish = (index) => {
   const newContent = prompt("投稿を編集してください：", chatList[index].content)
   if (newContent !== null && newContent !== "") {
     chatList[index].content = newContent;
-    socket.emit("editPublishEvent", {
+    socket.emit("editPublishEvent", roomName.value, {
       index: index,
       newContent: newContent
     });
@@ -165,6 +165,19 @@ const registerSocketEvent = () => {
   socket.on("publishEvent", (time, name, data) => {
     onReceivePublish(time, name, data)
   })
+    // 編集された投稿を受信して更新する
+    socket.on("receiveEditPublishEvent", function(data) {
+    if (chatList[data.index]) {
+      chatList[data.index].content = data.newContent;
+    }
+  })  
+  // 削除された投稿を受信して更新する
+  socket.on("receiveDeletePublishEvent", (data) => {
+    if (chatList[data.index]) {
+      chatList.splice(data.index, 1);
+    }
+  })
+
 }
 /*Open Modal*/
 const openModal = () => {

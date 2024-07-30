@@ -88,13 +88,13 @@ export default (io, socket) => {
 
 
   // クライアントからの編集イベントを受け取る
-  socket.on("editPublishEvent", function(data) {
-    socket.broadcast.emit("receiveEditPublishEvent", data);
+  socket.on("editPublishEvent", function(room, data) {
+    socket.broadcast.to(room).emit("receiveEditPublishEvent", data);
   })
 
   // クライアントからの削除イベントを受け取る
-  socket.on("deletePublishEvent", function(data) {
-    socket.broadcast.emit("receiveDeletePublishEvent", data);
+  socket.on("deletePublishEvent", function(room, data) {
+    socket.broadcast.to(room).emit("receiveDeletePublishEvent", data);
   })
 
 }
