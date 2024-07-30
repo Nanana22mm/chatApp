@@ -20,15 +20,22 @@ const showModal = ref(false);
 // #endregion
 
 // #region lifecycle
+
+// クライアントの起動
 onMounted(() => {
+  // サーバが DB のデータを送信してきた時に，それを取得できるように準備をしておく
   socket.on("initializeReplyEvent", posts => {
     posts.forEach(({name, time, data}) => {
       chatList.unshift(`${name}さんの投稿 [${time}]: ${data}`);
     });
   });
+
+  // イベントの登録
   registerSocketEvent()
   socket.emit("joinRoom", roomName.value)
-  socket.emit("initializeRequestEvent");
+
+  // DB のデータを送信するよう，サーバへリクエストを送信する
+  socket.emit("initializeRequestEvent", roomName.value);
 })
 
 // #endregion
@@ -99,8 +106,8 @@ const registerSocketEvent = () => {
   })
 
   // 投稿イベントを受け取ったら実行
-  socket.on("publishEvent", (time, name, data) => {
-    onReceivePublish(time, name, data)
+  socket.on("publishEvent", (time, name, data, room) => {
+    onReceivePublish(time, name, data, room)
   })
 }
 /*Open Modal*/
