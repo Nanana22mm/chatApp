@@ -13,4 +13,15 @@ export default (io, socket) => {
   socket.on("publishEvent", (time, name, data) => {
     io.sockets.emit("publishEvent", time, name, data)
   })
+
+    // クライアントからの編集イベントを受け取る
+  socket.on("editPublishEvent", function(data) {
+    // 他のすべてのクライアントに編集された内容をブロードキャスト
+    socket.broadcast.emit("receiveEditPublishEvent", data);
+  })
+
+  socket.on("deletePublishEvent", function(data) {
+    socket.broadcast.emit("receiveDeletePublishEvent", data);
+  });
+
 }

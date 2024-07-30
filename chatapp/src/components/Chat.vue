@@ -81,13 +81,29 @@ const onEditMemo = (index) => {
 
 // #region socket event handler
 // サーバから受信した入室メッセージ画面上に表示する
-const onReceiveEnter = (data) => {
-  chatList.unshift(`${data}さんが入室しました。`)
+const onReceiveEnter = (name) => {
+  const chatTime = new Date()
+  var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
+
+  chatList.unshift({
+    time: Time,
+    user: name,
+    content: `入室しました。`,
+    type: "system"
+  })
 }
 
 // サーバから受信した退室メッセージを受け取り画面上に表示する
-const onReceiveExit = (data) => {
-  chatList.unshift(`${data}さんが退室しました。`)
+const onReceiveExit = (name) => {
+  const chatTime = new Date()
+  var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
+
+  chatList.unshift({
+    time: Time,
+    user: name,
+    content: `退室しました。`,
+    type: "system"
+  })
 }
 
 // サーバから受信した投稿メッセージを画面上に表示する
@@ -103,16 +119,24 @@ const onReceivePublish = (time, name, data) => {
 
 // 投稿を削除する
 const onDeletePublish = (index) => {
-  chatList.splice(index, 1)
+  chatList.splice(index, 1);
+  socket.emit("deletePublishEvent", {
+      index: index
+    });
 }
 
 // 投稿を編集する
 const onEditPublish = (index) => {
   const newContent = prompt("投稿を編集してください：", chatList[index].content)
   if (newContent !== null && newContent !== "") {
-    chatList[index].content = newContent
+    chatList[index].content = newContent;
+    socket.emit("editPublishEvent", {
+      index: index,
+      newContent: newContent
+    });
   }
 }
+
 // #endregion
 
 // #region local methods
@@ -131,6 +155,25 @@ const registerSocketEvent = () => {
   // 投稿イベントを受け取ったら実行
   socket.on("publishEvent", (time, name, data) => {
     onReceivePublish(time, name, data)
+  })
+
+  // 編集された投稿を受信して更新する
+  socket.on("receiveEditPublishEvent", function(data) {
+    if (chatList[data.index]) {
+      chatList[data.index].content = data.newContent;
+    }
+  })
+
+  socket.on("receiveDelitePublishEvent", function(data) {
+    if (chatList[data.index]) {
+      chatList[data.index].content = data.newContent;
+    }
+  })
+
+  socket.on("receiveDeletePublishEvent", (data) => {
+    if (chatList[data.index]) {
+      chatList.splice(data.index, 1);
+    }
   })
 }
 // #endregion
@@ -158,6 +201,9 @@ const registerSocketEvent = () => {
               {{ chat.user }}さんの投稿 [{{ chat.time }}]: {{ chat.content }}
               <button v-if="chat.user === userName" @click="onEditPublish(i)">編集</button>
               <button v-if="chat.user === userName" @click="onDeletePublish(i)">削除</button>
+            </template>
+            <template v-else-if="chat.type === 'system'">
+              {{ chat.user }}さんが{{ chat.content }}
             </template>
           </li>
         </ul>
