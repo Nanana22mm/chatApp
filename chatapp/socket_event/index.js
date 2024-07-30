@@ -6,7 +6,7 @@ import { open } from 'sqlite'
 async function setupDB() {
   const db = await open({
     filename: 'database.db',
-    driver: sqlite3.Database,
+    driver: sqlite3.Database
   });
 
   await db.exec('CREATE TABLE IF NOT EXISTS chatList (name TEXT, data TEXT, time TEXT)');

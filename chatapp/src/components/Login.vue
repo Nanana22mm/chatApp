@@ -6,7 +6,6 @@ import socketManager from '../socketManager.js'
 // #region global state
 const userName = inject("userName")
 const roomName = inject("roomName")
-
 // #endregion
 
 // #region local variable
@@ -15,7 +14,6 @@ const socket = socketManager.getInstance()
 // #endregion
 
 // #region reactive variable
-
 const inputUserName = ref(localStorage.getItem('userName') || "");
 const selectedRoomName = ref("");
 const newRoomName = ref("");
@@ -62,10 +60,7 @@ onMounted(() => {
     departments.value = facultyDepartments[selectedFaculty.value] || [];
   }
 })
-
 // #endregion
-
-
 
 // #region browser event handler
 // 入室メッセージをクライアントに送信する
@@ -118,7 +113,6 @@ const onEnter = (data) => {
   router.push({ name: "chat", params: { roomName: room }})
 }
 // #endregion
-
 
 </script>
 
