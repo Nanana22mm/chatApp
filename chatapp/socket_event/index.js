@@ -86,4 +86,15 @@ export default (io, socket) => {
     }
   })
 
+
+  // クライアントからの編集イベントを受け取る
+  socket.on("editPublishEvent", function(data) {
+    socket.broadcast.emit("receiveEditPublishEvent", data);
+  })
+
+  // クライアントからの削除イベントを受け取る
+  socket.on("deletePublishEvent", function(data) {
+    socket.broadcast.emit("receiveDeletePublishEvent", data);
+  })
+
 }
