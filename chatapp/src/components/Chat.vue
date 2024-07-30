@@ -230,11 +230,6 @@ const closeModal = () => {
       <div class="mt-5" v-if="chatList.length !== 0">
         <ul>
           <li v-for="(chat, i) in chatList" :key="i">
-            <!-- <template v-if="chat.type === 'memo'">
-              {{ chat.user }}さんのメモ [{{ chat.time }}]: {{ chat.content }}
-              <button @click="onEditMemo(i)">編集</button>
-              <button @click="onDeleteMemo(i)">削除</button>
-            </template> -->
             <template v-if="chat.type === 'publish'">
               {{ chat.user }}さんの投稿 [{{ chat.time }}]: {{ chat.content }}
               <button v-if="chat.user === userName" @click="onEditPublish(i)">編集</button>
