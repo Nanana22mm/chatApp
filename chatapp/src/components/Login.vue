@@ -122,7 +122,8 @@ const onEnter = (data) => {
   //ユーザー名に重複がないか確認 
   socket.on("userInformationFlag", (flag)=>{
     if(!flag){
-      socket.emit("enterEvent", inputUserName.value)
+       // 入室メッセージを送信
+      socket.emit("enterEvent", userName.value, room)
       //チャット画面へ遷移
       router.push({ name: "chat", params: { roomName: room }})
     }else{
