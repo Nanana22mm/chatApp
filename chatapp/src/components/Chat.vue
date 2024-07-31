@@ -81,6 +81,13 @@ const onPublish = () => {
 
 // 退室メッセージをサーバに送信する
 const onExit = () => {
+  // socket.on("receiveUserInformation", (data) => {
+  //   socket.on("receiveUserList", (Listdata)=>{
+  //     const userIndex = Listdata.indeOf(data)
+  //     Listdata.splice(index, userIndex)
+  //     console.log(Listdata)
+  //   })
+  // })
   showModal.value = false;
   socket.emit("exitEvent", userName.value, roomName.value)
 }
@@ -236,7 +243,15 @@ const registerSocketEvent = () => {
 }
 /*Open Modal*/
 const openModal = () => {
-  showModal.value = true;
+  socket.on("receiveUserInformation", (data) => {
+    console.log(data)
+    socket.on("receiveUserList", (Listdata)=>{
+      const userIndex = Listdata.indeOf(data)
+      Listdata.splice(index, userIndex)
+      socket.emit("sendUseList", Listdata)
+    })
+  }) 
+  showModal.value = true; 
 }
 /*Close Modal*/
 const closeModal = () => {
@@ -251,6 +266,7 @@ const closeModal = () => {
     <div v-if="showModal" id="overlay" @click="closeModal">
       <div id="content" @click.stop>
         <p id="modal-message">本当に退室しますか？</p>
+        <p>{{ userList }}</p>
         <div class="d-flex justify-content-end">
           <router-link to="/" class="link">
             <button class="btn btn-primary" @click="onExit">はい</button>
@@ -265,7 +281,6 @@ const closeModal = () => {
   <div class="mx-auto my-5 px-4">
     <h1 class="text-h3 font-weight-medium">Vue.js Chat チャットルーム</h1>
     <div class="mt-10">
-      <p>{{ userList }}</p>
       <p>ログインユーザ：{{ userName }}さん</p>
       <textarea variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area" v-model="Content"></textarea>
       <div class="mt-5">
@@ -293,7 +308,6 @@ const closeModal = () => {
               {{ chat.user }}さんが{{ chat.content }}
             </template>
           </li>
-          <li class="item mt-4" v-for="(chat, i) in chatList" :key="i">さん：{{ chat }}</li>
         </ul>
       </div>
     </div>

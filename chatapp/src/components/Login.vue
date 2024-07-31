@@ -68,10 +68,7 @@ onMounted(() => {
   }
 })
 // #endregion
-//ユーザー名の配列
-const userList = []
-//ユーザー名の重複を判別するbooleen
-let userFlag = ref(false)
+
 
 // #region browser event handler
 // 入室メッセージをクライアントに送信する
@@ -116,36 +113,23 @@ const onEnter = (data) => {
   userName.value = `${selectedGrade.value}-${selectedDepartment.value}-${inputUserName.value}`
   roomName.value = room
 
-  // 入室メッセージを送信
-  socket.emit("enterEvent", userName.value, room)
+  // ユーザーの名前、学年、学部、学科を1つの文字列として統合
+  const userInformation = inputUserName.value + selectedGrade.value + selectedFaculty.value + selectedDepartment.value
 
-  // チャット画面へ遷移
-  router.push({ name: "chat", params: { roomName: room }})
-
-  // 全体で使用するname, roomに入力されたユーザー名, ルーム名を格納
-  userName.value = inputUserName.value
-  roomName.value = room
-  
-  
-  // 全体で使用するnameに入力されたユーザー名を格納
-  userName.value = inputUserName.value
+  //ユーザー情報をサーバーに送る
+  socket.emit("sendUserInformation", userInformation)
+  socket.on("receiveUserInformation", data)
   //ユーザー名に重複がないか確認 
-  userFlag = userList.includes(userName.value)
-  if (userFlag === false) {
-    userList.push(userName.value)
-    // 入室メッセージを送信
-    socket.emit("enterEvent", inputUserName.value)
-    
-    // 全体で使用するnameに入力されたユーザー名を格納
-    userName.value = inputUserName.value
-    //サーバーへユーザーリストのデータを送信
-    provide ('userList', userList)
-    // チャット画面へ遷移
-    router.push({ name: "chat", params: { roomName: room }})
-  }else{
-    alert("ユーザー名が重複しています。別のユーザー名を入力してください。")
-    return
-  }
+  socket.on("userInformationFlag", (flag)=>{
+    if(!flag){
+      socket.emit("enterEvent", inputUserName.value)
+      //チャット画面へ遷移
+      router.push({ name: "chat", params: { roomName: room }})
+    }else{
+      alert("ユーザー名が重複しています。別のユーザー名を入力してください。")
+      return
+    }
+  })
 }
 // #endregion
 

@@ -12,6 +12,9 @@ var EditType = {
   update: 3,
 };
 
+//ユーザー名の配列
+const userList = [" "]
+
 // DB の初期化
 // database.db を読み込んで，table を作成する
 async function setupDB() {
@@ -156,4 +159,23 @@ export default (io, socket) => {
         break;
     }
   })
+
+  //ユーザー情報の重複防止
+  socket.on("sendUserInformation", (data) => {
+    socket.emit("receiveUserInformation", data)
+    const userListFlag = userList.includes(data)
+    if (!userListFlag) {
+      userList.push(data)
+      socket.emit("receiveUserList", userList)
+      socket.emit("userInformationFlag", false)
+    }else{
+      socket.emit("userInformationFlag", true)
+    }
+  } )
+
+  //退出した際にuserListからユーザー情報を削除する
+  //そうしないと再入室できない。
+
 }
+
+
