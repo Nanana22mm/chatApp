@@ -249,7 +249,7 @@ const closeModal = () => {
           <router-link to="/" class="link">
             <button class="btn btn-primary" @click="onExit">はい</button>
           </router-link>
-          <p>　</p>
+          <p></p>
           <button class="btn btn-secondary" @click="closeModal">いいえ</button>
         </div>
       </div>

@@ -25,13 +25,22 @@ const chatRooms = ref([]);
 // 学年、学部、学科のデータ
 const grades = ref(['B1', 'B2', 'B3', 'B4', 'M1', 'M2', 'D1', 'D2', 'D3']);
 const faculties = ref([
+  { value: 'law', label: '法学部' },
+  { value: 'economics', label: '経済学部' },
+  { value: 'commerce', label: '商学部' },
+  { value: 'science', label: '理学部' },
   { value: 'engineering', label: '工学部' },
-  { value: 'science', label: '理学部' }
+  { value: 'agriculture', label: '農学部' }
 ]); 
 const facultyDepartments = {
-  engineering: ['機械工学科', '電気工学科', '情報工学科'],
-  science: ['物理学科', '化学科', '数学科']
-}; 
+  law: ['法学科', '政治学科'],
+  economics: ['経済学科', '経営学科'],
+  commerce: ['商学科'],
+  science: ['物理学科', '化学科', '生物学科', '数学科'],
+  engineering: ['機械工学科', '電気工学科', '情報工学科', '建築学科'],
+  agriculture: ['農学科']
+};
+
 const departments = ref([]); 
 
 // 学部変更時に学科の選択肢を更新
