@@ -7,12 +7,10 @@ import socketManager from '../socketManager.js'
 const userName = inject("userName")
 const roomName = inject("roomName")
 // #endregion
-
 // #region local variable
 const router = useRouter()
 const socket = socketManager.getInstance()
 // #endregion
-
 // #region reactive variable
 const inputUserName = ref(localStorage.getItem('userName') || "");
 const selectedRoomName = ref("");
@@ -73,21 +71,7 @@ onMounted(() => {
 //ユーザー名の配列
 const userList = []
 //ユーザー名の重複を判別するbooleen
-const userFlag = false
-
-// ユーザー名の重複を判別するメソッド
-const onSubmit = ()=>{ 
-//ユーザー名に重複がないか確認 
-  userFlag = userList.includes(userName)
-  if (userFlag === false) {
-    userList.push(userName)
-    //ユーザー名をサーバーに送信
-  inject("userList")
-  }else{
-    alert("ユーザー名が重複しています。別のユーザー名を入力してください。")
-    return
-  }
-}
+let userFlag = ref(false)
 
 // #region browser event handler
 // 入室メッセージをクライアントに送信する
@@ -138,6 +122,25 @@ const onEnter = (data) => {
 
   // チャット画面へ遷移
   router.push({ name: "chat", params: { roomName: room }})
+    // 全体で使用するnameに入力されたユーザー名を格納
+    userName.value = inputUserName.value
+    //ユーザー名に重複がないか確認 
+    userFlag = userList.includes(userName.value)
+    if (userFlag === false) {
+      userList.push(userName.value)
+      // 入室メッセージを送信
+      socket.emit("enterEvent", inputUserName.value)
+      
+      // 全体で使用するnameに入力されたユーザー名を格納
+      userName.value = inputUserName.value
+      //サーバーへユーザーリストのデータを送信
+      provide ('userList', userList)
+      // //チャット画面へ遷移
+      // router.push({ name: "chat" })
+    }else{
+      alert("ユーザー名が重複しています。別のユーザー名を入力してください。")
+      return
+    }
 }
 // #endregion
 

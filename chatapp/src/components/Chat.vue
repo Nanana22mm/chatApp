@@ -25,6 +25,19 @@ const memoList = reactive([])
 const showModal = ref(false);
 // #endregion
 
+//ユーザーリスト取得
+const userList = inject("userList")
+console.log(userList)
+
+// #region local variable
+const socket = socketManager.getInstance()
+// #endregion
+
+// #region reactive variable
+const chatContent = ref("")
+const chatList = reactive([])
+// #endregion
+
 // #region lifecycle
 
 // クライアントの起動
@@ -73,17 +86,7 @@ const onPublish = () => {
   // 入力欄を初期化
   Content.value = ""
   chatContent.value = ""
-const onPublish = () => {}
-
-  // 入力欄を初期化
-const message = ref("")
-
-const clearTextarea = () => {
-  chatList.push(message.value)
-  message.value = ""
 }
-
-
 
 // 退室メッセージをサーバに送信する
 const onExit = () => {
@@ -271,6 +274,7 @@ const closeModal = () => {
   <div class="mx-auto my-5 px-4">
     <h1 class="text-h3 font-weight-medium">Vue.js Chat チャットルーム</h1>
     <div class="mt-10">
+      <p>{{ userList }}</p>
       <p>ログインユーザ：{{ userName }}さん</p>
       <textarea variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area" v-model="Content"></textarea>
       <div class="mt-5">
