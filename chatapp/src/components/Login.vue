@@ -1,5 +1,5 @@
 <script setup>
-import { inject, ref, onMounted, watch } from "vue"
+import { inject, provide, ref, onMounted, watch } from "vue"
 import { useRouter } from "vue-router"
 import socketManager from '../socketManager.js'
 
@@ -76,7 +76,6 @@ let userFlag = ref(false)
 // #region browser event handler
 // 入室メッセージをクライアントに送信する
 const onEnter = (data) => {
-  // ユーザー名が入力されているかチェック
   if (!inputUserName.value) {
     alert("ユーザー名を入力してください。")
     return
@@ -123,6 +122,11 @@ const onEnter = (data) => {
   // チャット画面へ遷移
   router.push({ name: "chat", params: { roomName: room }})
 
+  // 全体で使用するname, roomに入力されたユーザー名, ルーム名を格納
+  userName.value = inputUserName.value
+  roomName.value = room
+  
+  
   // 全体で使用するnameに入力されたユーザー名を格納
   userName.value = inputUserName.value
   //ユーザー名に重複がないか確認 
@@ -136,8 +140,8 @@ const onEnter = (data) => {
     userName.value = inputUserName.value
     //サーバーへユーザーリストのデータを送信
     provide ('userList', userList)
-    // //チャット画面へ遷移
-    // router.push({ name: "chat" })
+    // チャット画面へ遷移
+    router.push({ name: "chat", params: { roomName: room }})
   }else{
     alert("ユーザー名が重複しています。別のユーザー名を入力してください。")
     return
