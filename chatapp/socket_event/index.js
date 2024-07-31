@@ -1,9 +1,15 @@
 import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
 
-var ContentType = {
+var ChatType = {
   post: 1,
   memo: 2
+};
+
+var EditType = {
+  insert: 1,
+  delete: 2,
+  update: 3,
 };
 
 // DB の初期化
@@ -19,19 +25,43 @@ async function setupDB() {
 }
 
 // DB に chatList のデータを挿入する
-async function insertData(name, data, time, room, type) {
+async function editDatabase(chatType, editType, name, time, room, chatStruct) {
   const db = await setupDB();
   if (!db) {
     console.log('cannot open database');
     return;
   }
 
-  await db.run('INSERT INTO chatList (name, data, time, room, type) VALUES (?, ?, ?, ?, ?)', name, data, time, room, type).then(result => {
-    console.log(`insert success: ${data}, ${name}, ${time}, ${room}, ${type}`);
-  }).catch(error => {
-    console.log(error);
-  });
+  // 変数の宣言と初期化
+  var newData = null, oldData = null;
 
+  switch (editType) {
+    case EditType.insert:
+      newData = chatStruct.newData;
+      await db.run('INSERT INTO chatList (name, data, time, room, type) VALUES (?, ?, ?, ?, ?)', name, newData, time, room, chatType).then(result => {
+        console.log(`insert success: ${newData}, ${name}, ${time}, ${room}, ${chatType}`);
+      }).catch(error => {
+        console.log(error);
+      });
+      break;
+    case EditType.delete:
+      oldData = chatStruct.oldData;
+      await db.run('DELETE FROM chatList WHERE name = ? AND data = ? AND time = ? AND room = ? AND type = ?', name, oldData, time, room, chatType).then(result => {
+        console.log(`delete success: ${oldData}, ${name}, ${time}, ${room}, ${chatType}`);
+      }).catch(error => {
+        console.log(error);
+      });
+      break;
+    case EditType.update:
+      newData = chatStruct.newData;
+      oldData = chatStruct.oldData;
+      await db.run('UPDATE chatList SET data = ? WHERE name = ? AND data = ? AND time = ? AND room = ? AND type = ?', newData, name, oldData, time, room, chatType).then(result => {
+        console.log(`update success: ${newData}, ${name}, ${time}, ${room}, ${chatType}`);
+      }).catch(error => {
+        console.log(error);
+      });
+      break;
+  }
   // const data2 = await db.all('SELECT * FROM chatList WHERE room = ?', room);
   // console.log(data2);
 }
@@ -44,8 +74,8 @@ async function initializeData(room, name) {
     return { posts: [], memos: [] };
   }
 
-  const posts = await db.all('SELECT * FROM chatList WHERE room = ? AND type = ?', room, ContentType.post);
-  const memos = await db.all('SELECT * FROM chatList WHERE name = ? AND type = ?', name, ContentType.memo);
+  const posts = await db.all('SELECT * FROM chatList WHERE room = ? AND type = ?', room, ChatType.post);
+  const memos = await db.all('SELECT * FROM chatList WHERE name = ? AND type = ?', name, ChatType.memo);
 
   console.log('initializeData posts', posts);
   console.log('initializeData memos', memos);
@@ -78,15 +108,13 @@ export default (io, socket) => {
   })
 
   // 投稿メッセージを送信するとともに， DB にデータを追加する
-  socket.on("publishEvent", (room, time, name, data) => {
-    io.to(room).emit("publishEvent", time, name, data)
-    insertData(name, data, time, room, ContentType.post)
-  })
-
-  // メモメッセージを送信するとともに， DB にデータを追加する
-  socket.on("publishMemo", (room, time, name, data) => {
-    socket.emit("publishMemo", time, name, data)
-    insertData(name, data, time, room, ContentType.memo)
+  socket.on("publishEvent", (room, time, name, data, type) => {
+    editDatabase(type, EditType.insert, name, time, room, { newData: data });
+    switch (type) {
+      case ChatType.post:
+        io.to(room).emit("publishEvent", time, name, data);
+        break;
+    }
   })
 
   // チャットルームのリストを取得する
@@ -106,15 +134,26 @@ export default (io, socket) => {
     }
   })
 
-
   // クライアントからの編集イベントを受け取る
-  socket.on("editPublishEvent", function(room, data) {
-    socket.broadcast.to(room).emit("receiveEditPublishEvent", data);
+  socket.on("editEvent", function (room, data) {
+    const { index, name, time, oldData, newData, type } = data;
+    editDatabase(type, EditType.update, name, time, room, { newData: newData, oldData: oldData });
+
+    switch (type) {
+      case ChatType.post:
+        socket.broadcast.to(room).emit("receiveEditEvent", { data, type });
+        break;
+    }
   })
 
   // クライアントからの削除イベントを受け取る
-  socket.on("deletePublishEvent", function(room, data) {
-    socket.broadcast.to(room).emit("receiveDeletePublishEvent", data);
+  socket.on("deleteEvent", function (room, data) {
+    const { index, name, time, oldData, type } = data;
+    editDatabase(type, EditType.delete, name, time, room, { oldData: oldData });
+    switch (type) {
+      case ChatType.post:
+        socket.broadcast.to(room).emit("receiveDeleteEvent", { data, type });
+        break;
+    }
   })
-
 }
