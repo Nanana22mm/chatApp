@@ -72,7 +72,18 @@ const onPublish = () => {
 
   // 入力欄を初期化
   Content.value = ""
+  chatContent.value = ""
+const onPublish = () => {}
+
+  // 入力欄を初期化
+const message = ref("")
+
+const clearTextarea = () => {
+  chatList.push(message.value)
+  message.value = ""
 }
+
+
 
 // 退室メッセージをサーバに送信する
 const onExit = () => {
@@ -237,6 +248,7 @@ const openModal = () => {
 const closeModal = () => {
   showModal.value = false;
 }
+}
 </script>
 
 <template>
@@ -286,6 +298,7 @@ const closeModal = () => {
               {{ chat.user }}さんが{{ chat.content }}
             </template>
           </li>
+          <li class="item mt-4" v-for="(chat, i) in chatList" :key="i">さん：{{ chat }}</li>
         </ul>
       </div>
     </div>
