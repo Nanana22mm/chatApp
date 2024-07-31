@@ -3,6 +3,11 @@ import { inject, ref, reactive, onMounted} from "vue"
 import { useRouter } from "vue-router"
 import socketManager from '../socketManager.js'
 
+var ContentType = {
+  post: 1,
+  memo: 2
+};
+
 // #region global state
 const userName = inject("userName")
 const roomName = inject("roomName")
@@ -14,8 +19,9 @@ const socket = socketManager.getInstance()
 // #endregion
 
 // #region reactive variable
-const chatContent = ref("")
+const Content = ref('')
 const chatList = reactive([])
+const memoList = reactive([])
 const showModal = ref(false);
 // #endregion
 
@@ -24,9 +30,14 @@ const showModal = ref(false);
 // クライアントの起動
 onMounted(() => {
   // サーバが DB のデータを送信してきた時に，それを取得できるように準備をしておく
-  socket.on("initializeReplyEvent", posts => {
+  socket.on("initializeReplyEvent", async ({posts, memos}) => {
     posts.forEach(({name, time, data}) => {
       chatList.unshift(`${name}さんの投稿 [${time}]: ${data}`);
+      console.log(`${name}さんの投稿 [${time}]: ${data}`);
+    });
+    memos.forEach(({name, time, data}) => {
+      memoList.unshift(`${name}さんのメモ [${time}]: ${data}`);
+      console.log(`${name}さんのメモ [${time}]: ${data}`)
     });
   });
 
@@ -35,24 +46,24 @@ onMounted(() => {
   socket.emit("joinRoom", roomName.value)
 
   // DB のデータを送信するよう，サーバへリクエストを送信する
-  socket.emit("initializeRequestEvent", roomName.value);
+  socket.emit("initializeRequestEvent", roomName.value, userName.value);
 })
 
 // #endregion
 
 // 投稿メッセージをサーバに送信する
 const onPublish = () => {
-  if (!chatContent.value || chatContent.value.match(/^\s*$/g)) {
+  if (!Content.value || Content.value.match(/^\s*$/g)) {
     alert("投稿を入力してください。")
     return
   }
   const chatTime = new Date()
   var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
 
-  socket.emit("publishEvent",roomName.value, Time, userName.value, chatContent.value)
+  socket.emit("publishEvent",roomName.value, Time, userName.value, Content.value)
 
   // 入力欄を初期化
-  chatContent.value = ""
+  Content.value = ""
 }
 
 // 退室メッセージをサーバに送信する
@@ -63,19 +74,19 @@ const onExit = () => {
 
 // メモを画面上に表示する
 const onMemo = () => {
-  if (!chatContent.value || chatContent.value.match(/^\s*$/g)) {
+  if (!Content.value || Content.value.match(/^\s*$/g)) {
     alert("メモを入力してください。")
     return
   }
 
-  const chatTime = new Date()
-  var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
+  const memoTime = new Date()
+  var Time = memoTime.getFullYear() + '/' + ('0' + (memoTime.getMonth() + 1)).slice(-2) + '/' +('0' + memoTime.getDate()).slice(-2) + ' ' +  ('0' + memoTime.getHours()).slice(-2) + ':' + ('0' + memoTime.getMinutes()).slice(-2);
 
-  // メモの内容を表示
-  chatList.unshift(`${userName.value}さんのメモ [${Time}]: ` + chatContent.value)
+  // メモの内容を自分のサーバに送信する
+  socket.emit("publishMemo", roomName.value, Time, userName.value, Content.value)
 
   // 入力欄を初期化
-  chatContent.value = ""
+  Content.value = ""
 }
 
 // サーバから受信した入室メッセージ画面上に表示する
@@ -93,6 +104,11 @@ const onReceivePublish = (time, name, data) => {
   chatList.unshift(`${name}さんの投稿 [${time}]: ${data}`)
 }
 
+// サーバから受信したメモを画面上に表示する
+const onReceiveMemo = (time, name, data) => {
+  memoList.unshift(`${name}さんのメモ [${time}]: ${data}`)
+}
+
 // イベント登録をまとめる
 const registerSocketEvent = () => {
   // 入室イベントを受け取ったら実行
@@ -108,6 +124,11 @@ const registerSocketEvent = () => {
   // 投稿イベントを受け取ったら実行
   socket.on("publishEvent", (time, name, data, room) => {
     onReceivePublish(time, name, data, room)
+  })
+
+  // 投稿イベントを受け取ったら実行
+  socket.on("publishMemo", (time, name, data, room) => {
+    onReceiveMemo(time, name, data, room)
   })
 }
 /*Open Modal*/
@@ -141,7 +162,7 @@ const closeModal = () => {
     <h1 class="text-h3 font-weight-medium">Vue.js Chat チャットルーム</h1>
     <div class="mt-10">
       <p>ログインユーザ：{{ userName }}さん</p>
-      <textarea variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area" v-model="chatContent"></textarea>
+      <textarea variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area" v-model="Content"></textarea>
       <div class="mt-5">
         <button class="button-normal" @click="onPublish">投稿</button>
         <button class="button-normal util-ml-8px"  @click="onMemo">メモ</button>
@@ -149,6 +170,11 @@ const closeModal = () => {
       <div class="mt-5" v-if="chatList.length !== 0">
         <ul>
           <li class="item mt-4" v-for="(chat, i) in chatList" :key="i">{{ chat }}</li>
+        </ul>
+      </div>
+      <div class="mt-5" v-if="memoList.length !== 0">
+        <ul>
+          <li class="item mt-4" v-for="(chat, i) in memoList" :key="i">{{ chat }}</li>
         </ul>
       </div>
     </div>
