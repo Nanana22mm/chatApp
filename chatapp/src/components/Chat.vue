@@ -231,15 +231,18 @@ const registerSocketEvent = () => {
   })
 
   // 編集された投稿を受信して更新する
-  socket.on("receiveEditPublishEvent", function(data) {
+  socket.on("receiveEditEvent", function(data) {
     if (chatList[data.index]) {
       chatList[data.index].content = data.newContent;
     }
   })  
 
   // 削除された投稿を受信して更新する
-  socket.on("receiveDeletePublishEvent", (data) => {
+  socket.on("receiveDeleteEvent", (data) => {
     if (chatList[data.index]) {
+      console.log(chatList[data.index])
+      console.log(data.index)
+      console.log(data)
       chatList.splice(data.index, 1);
     }
   })
