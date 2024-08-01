@@ -25,12 +25,6 @@ const memoList = reactive([])
 const showModal = ref(false);
 // #endregion
 
-// //ユーザーリスト取得
-// const userList = inject("userList")
-// console.log(userList)
-
-// #region lifecycle
-
 // クライアントの起動
 onMounted(() => {
   // サーバが DB のデータを送信してきた時に，それを取得できるように準備をしておく
@@ -51,6 +45,14 @@ onMounted(() => {
         content: data
       })
     });
+
+    // //ユーザーリストの取得
+    // socket.on("receiveUserList", (data) =>{
+    //   console.log(data)
+    //   data.map(userList => {
+    //   })
+    // });
+
   });
 
   // イベントの登録
@@ -81,13 +83,14 @@ const onPublish = () => {
 
 // 退室メッセージをサーバに送信する
 const onExit = () => {
-  // socket.on("receiveUserInformation", (data) => {
-  //   socket.on("receiveUserList", (Listdata)=>{
-  //     const userIndex = Listdata.indeOf(data)
-  //     Listdata.splice(index, userIndex)
-  //     console.log(Listdata)
-  //   })
-  // })
+  socket.on("receiveUserInformation", (informationData) => {
+    socket.on("receiveUserList", (Listdata)=>{
+      const userIndex = Listdata.indeOf(informationData)
+      Listdata.splice(index, userIndex)
+      socket.emit("exitUserList", Listdata)
+      console.log(Listdata)
+    })
+  })
   showModal.value = false;
   socket.emit("exitEvent", userName.value, roomName.value)
 }
@@ -243,14 +246,14 @@ const registerSocketEvent = () => {
 }
 /*Open Modal*/
 const openModal = () => {
-  socket.on("receiveUserInformation", (data) => {
-    console.log(data)
-    socket.on("receiveUserList", (Listdata)=>{
-      const userIndex = Listdata.indeOf(data)
-      Listdata.splice(index, userIndex)
-      socket.emit("sendUseList", Listdata)
-    })
-  }) 
+  // socket.on("receiveUserInformation", (data) => {
+  //   console.log(data)
+  //   socket.on("receiveUserList", (Listdata)=>{
+  //     const userIndex = Listdata.indeOf(data)
+  //     Listdata.splice(index, userIndex)
+  //     socket.emit("exitUserList", Listdata)
+  //   })
+  // }) 
   showModal.value = true; 
 }
 /*Close Modal*/
