@@ -141,7 +141,7 @@ export default (io, socket) => {
 
     switch (type) {
       case ChatType.post:
-        socket.broadcast.to(room).emit("receiveEditEvent", { data, type });
+        socket.broadcast.to(room).emit("receiveEditEvent", { index, newContent: newData });
         break;
     }
   })
@@ -152,7 +152,7 @@ export default (io, socket) => {
     editDatabase(type, EditType.delete, name, time, room, { oldData: oldData });
     switch (type) {
       case ChatType.post:
-        socket.broadcast.to(room).emit("receiveDeleteEvent", { data, type });
+        socket.broadcast.to(room).emit("receiveDeleteEvent", { index });
         break;
     }
   })
