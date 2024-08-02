@@ -151,20 +151,19 @@ const onEnter = (data) => {
     </div>
 
     <div class="mt-10">
-      <p>既存のチャットルームを選択</p>
-      <select v-model="selectedRoomName" class="user-name-text">
+      <p>チャットルームを作成</p>
+      <input v-model="newRoomName" type="text" class="user-name-text" placeholder="新しいチャットルームを作成" />
+    </div>
+    
+    <div class="mt-10">
+      <p>チャットルームを選択</p>
+      <select v-model="selectedRoomName" class="user-name-text" size="8">
         <option value="">チャットルームを選択</option>
         <option v-for="room in chatRooms" :key="room" :value="room">{{ room }}</option>
       </select>
     </div>
 
-    <div class="mt-10">
-      <p>新しいチャットルーム名</p>
-      <input v-model="newRoomName" type="text" class="user-name-text" placeholder="新しいチャットルームを作成" />
-    </div>
-
-    <button type="button" @click="onEnter" class="button-normal">新規で入室する</button>
-    <button type="button" @click="re-entering" class="button-normal">再入室する</button>
+    <button type="button" @click="onEnter" class="button-normal">入室する</button>
   </div>
 </div>
 </body>
