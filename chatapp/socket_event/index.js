@@ -1,5 +1,6 @@
 import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
+import { ref } from 'vue';
 
 var ChatType = {
   post: 1,
@@ -13,7 +14,7 @@ var EditType = {
 };
 
 //ユーザー名の配列
-const userList = [" "]
+let userList = [" "]
 
 // DB の初期化
 // database.db を読み込んで，table を作成する
@@ -144,7 +145,7 @@ export default (io, socket) => {
 
     switch (type) {
       case ChatType.post:
-        socket.broadcast.to(room).emit("receiveEditEvent", { data, type });
+        socket.broadcast.to(room).emit("receiveEditEvent", { index, newContent: newData });
         break;
     }
   })
@@ -155,14 +156,14 @@ export default (io, socket) => {
     editDatabase(type, EditType.delete, name, time, room, { oldData: oldData });
     switch (type) {
       case ChatType.post:
-        socket.broadcast.to(room).emit("receiveDeleteEvent", { data, type });
+        socket.broadcast.to(room).emit("receiveDeleteEvent", { index });
         break;
     }
   })
 
-  //ユーザー情報の重複防止
+  // ユーザー情報の重複防止
   socket.on("sendUserInformation", (data) => {
-    socket.emit("receiveUserInformation", data)
+    // socket.emit("receiveUserInformation", data)
     const userListFlag = userList.includes(data)
     if (!userListFlag) {
       userList.push(data)
@@ -173,9 +174,23 @@ export default (io, socket) => {
     }
   } )
 
-  //退出した際にuserListからユーザー情報を削除する
-  //そうしないと再入室できない。
-
+  // socket.on("sendUserInformation", (data) => {
+  //   socket.emit("receiveUserInformation", data)
+  //   socket.on("exitUserList", (updateUserList)=>{
+  //     if(updateUserList){
+  //       userList = updateUserList
+  //     }
+  //     const userListFlag = userList.includes(data)
+  //     console.log(userListFlag)
+  //     if (!userListFlag) {
+  //       userList.push(data)
+  //       socket.emit("receiveUserList", userList)
+  //       socket.emit("userInformationFlag", false)
+  //     }else{
+  //       socket.emit("userInformationFlag", true)
+  //     }
+  //   } )
+  // })
 }
 
 

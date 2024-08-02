@@ -25,12 +25,6 @@ const memoList = reactive([])
 const showModal = ref(false);
 // #endregion
 
-// //ユーザーリスト取得
-// const userList = inject("userList")
-// console.log(userList)
-
-// #region lifecycle
-
 // クライアントの起動
 onMounted(() => {
   // サーバが DB のデータを送信してきた時に，それを取得できるように準備をしておく
@@ -51,6 +45,14 @@ onMounted(() => {
         content: data
       })
     });
+
+    // //ユーザーリストの取得
+    // socket.on("receiveUserList", (data) =>{
+    //   console.log(data)
+    //   data.map(userList => {
+    //   })
+    // });
+
   });
 
   // イベントの登録
@@ -81,13 +83,14 @@ const onPublish = () => {
 
 // 退室メッセージをサーバに送信する
 const onExit = () => {
-  // socket.on("receiveUserInformation", (data) => {
-  //   socket.on("receiveUserList", (Listdata)=>{
-  //     const userIndex = Listdata.indeOf(data)
-  //     Listdata.splice(index, userIndex)
-  //     console.log(Listdata)
-  //   })
-  // })
+  socket.on("receiveUserInformation", (informationData) => {
+    socket.on("receiveUserList", (Listdata)=>{
+      const userIndex = Listdata.indeOf(informationData)
+      Listdata.splice(index, userIndex)
+      socket.emit("exitUserList", Listdata)
+      console.log(Listdata)
+    })
+  })
   showModal.value = false;
   socket.emit("exitEvent", userName.value, roomName.value)
 }
@@ -121,11 +124,18 @@ const onDeleteMemo = (index) => {
   socket.emit("deleteEvent", roomName.value, {
     index: index,
     name: userName.value,
-    time: chatList[index].time,
-    oldData: chatList[index].content,
+    time: memoList[index].time,
+    oldData: memoList[index].content,
     type: ChatType.memo
   });
   memoList.splice(index, 1)
+}
+
+// メモを下書きとして活用: メモに書いていたものを投稿できるようにする
+// メモを投稿リストに追加．そのメモはメモリストから削除する
+const onAddMemointoPublish = (index) => {
+  socket.emit("publishEvent",roomName.value, memoList[index].time, userName.value, memoList[index].content, ChatType.post);
+  onDeleteMemo(index);
 }
 
 // メモを編集する
@@ -135,9 +145,9 @@ const onEditMemo = (index) => {
     socket.emit("editEvent", roomName.value, {
       index: index,
       name: userName.value,
-      time: chatList[index].time,
+      time: memoList[index].time,
       newData: newContent,
-      oldData: chatList[index].content, 
+      oldData: memoList[index].content, 
       type: ChatType.memo
     });
     memoList[index].content = newContent
@@ -208,6 +218,17 @@ const onEditPublish = (index) => {
   }
 }
 
+const onAddPublishintoMemo = (index) => {
+  // メモの内容を自分のサーバに送信する
+  socket.emit("publishEvent", roomName.value, chatList[index].time, userName.value, chatList[index].content, ChatType.memo)
+  memoList.unshift({
+    time: chatList[index].time,
+    user: userName.value,
+    room: roomName.value,
+    content: chatList[index].content
+  })
+}
+
 // #endregion
 
 // イベント登録をまとめる
@@ -228,29 +249,32 @@ const registerSocketEvent = () => {
   })
 
   // 編集された投稿を受信して更新する
-  socket.on("receiveEditPublishEvent", function(data) {
+  socket.on("receiveEditEvent", function(data) {
     if (chatList[data.index]) {
       chatList[data.index].content = data.newContent;
     }
   })  
 
   // 削除された投稿を受信して更新する
-  socket.on("receiveDeletePublishEvent", (data) => {
+  socket.on("receiveDeleteEvent", (data) => {
     if (chatList[data.index]) {
+      console.log(chatList[data.index])
+      console.log(data.index)
+      console.log(data)
       chatList.splice(data.index, 1);
     }
   })
 }
 /*Open Modal*/
 const openModal = () => {
-  socket.on("receiveUserInformation", (data) => {
-    console.log(data)
-    socket.on("receiveUserList", (Listdata)=>{
-      const userIndex = Listdata.indeOf(data)
-      Listdata.splice(index, userIndex)
-      socket.emit("sendUseList", Listdata)
-    })
-  }) 
+  // socket.on("receiveUserInformation", (data) => {
+  //   console.log(data)
+  //   socket.on("receiveUserList", (Listdata)=>{
+  //     const userIndex = Listdata.indeOf(data)
+  //     Listdata.splice(index, userIndex)
+  //     socket.emit("exitUserList", Listdata)
+  //   })
+  // }) 
   showModal.value = true; 
 }
 /*Close Modal*/

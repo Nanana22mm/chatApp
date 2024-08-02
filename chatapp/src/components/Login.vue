@@ -113,32 +113,19 @@ const onEnter = (data) => {
   userName.value = `${selectedGrade.value}-${selectedDepartment.value}-${inputUserName.value}`
   roomName.value = room
 
-  // ユーザーの名前、学年、学部、学科を1つの文字列として統合
-  const userInformation = inputUserName.value + selectedGrade.value + selectedFaculty.value + selectedDepartment.value
-
-  //ユーザー情報をサーバーに送る
-  socket.emit("sendUserInformation", userInformation)
-  socket.on("receiveUserInformation", data)
-  //ユーザー名に重複がないか確認 
-  socket.on("userInformationFlag", (flag)=>{
-    if(!flag){
-       // 入室メッセージを送信
-      socket.emit("enterEvent", userName.value, room)
-      //チャット画面へ遷移
-      router.push({ name: "chat", params: { roomName: room }})
-    }else{
-      alert("ユーザー名が重複しています。別のユーザー名を入力してください。")
-      return
-    }
-  })
-}
+    // 入室メッセージを送信
+  socket.emit("enterEvent", userName.value, room)
+  //チャット画面へ遷移
+  router.push({ name: "chat", params: { roomName: room }})}
 // #endregion
 
 </script>
 
 <template>
+<body>
+<div class="login-section">
   <div class="mx-auto my-5 px-4">
-    <h1 class="text-h3 font-weight-medium">Vue.js Chat サンプル</h1>
+    <h1 class="text-h3 font-weight-medium">rakus質問箱</h1>
 
     <div class="mt-10">
       <p>ユーザー名</p>
@@ -176,14 +163,90 @@ const onEnter = (data) => {
       <input v-model="newRoomName" type="text" class="user-name-text" placeholder="新しいチャットルームを作成" />
     </div>
 
-    <button type="button" @click="onEnter" class="button-normal">入室する</button>
+    <button type="button" @click="onEnter" class="button-normal">新規で入室する</button>
+    <button type="button" @click="re-entering" class="button-normal">再入室する</button>
   </div>
+</div>
+</body>
 </template>
 
 <style scoped>
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
 .user-name-text {
   width: 200px;
   border: 1px solid #888;
   margin-bottom: 16px;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    margin: 0px;
+    padding: 0;
+}
+
+.qa-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(26, 98, 56);
+  color: #000;
+  font-size: 48px;
+  flex: 1;
+  height: 930px;
+}
+
+.question {
+  background-color: lightblue;
+    width: 100%;
+    text-align: center;
+    height: 515px;
+    font-size:  400px;
+    display: flex;
+  }
+  
+  .and{
+    display: inline-block;
+  }
+  
+  .answer {
+    background-color: lightcoral;
+    width: 100%;
+    text-align: center;
+    height: 515px;
+    font-size: 350px;
+}
+
+.login-section {
+    background-color: #e0e0e0;
+    flex: 1;
+    height: 930px;
+}
+
+.login-section h1 {
+    margin-bottom: 20px;
+}
+
+.login-section label {
+    margin-right: 10px;
+}
+
+.login-section input {
+    padding: 10px;
+    margin-bottom: 10px;
+    width: 200px;
+}
+
+.login-section button {
+    padding: 10px;
+    width: 100%;
+    cursor: pointer;
 }
 </style>
