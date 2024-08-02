@@ -310,11 +310,18 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
         </div>
         <div class="bg-black text-white" style="text-align: center; padding: 10px 0;">
           <h4>{{ urlName }}</h4>
+          <h4 v-for="(user, i) in userList" :key="i">
+            {{ user.name }}
+            {{ user.department }}
+            {{ user.grade }}
+            {{ user.faculty }}
+          </h4>
         </div>
 
         <!-- Room Member All -->
          <h5 style="text-align: center; padding: 5px 0;" ></h5>
-
+        </div>
+      </div>
     <!-- Center Space -->
      <div class="col-9" style="padding: 0;">
       <!-- Question Theme -->
