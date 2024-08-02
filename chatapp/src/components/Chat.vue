@@ -218,6 +218,17 @@ const onEditPublish = (index) => {
   }
 }
 
+const PublishtoMemo = (index) => {
+  // メモの内容を自分のサーバに送信する
+  socket.emit("publishEvent", roomName.value, chatList[index].time, userName.value, chatList[index].content, ChatType.memo)
+  memoList.unshift({
+    time: chatList[index].time,
+    user: userName.value,
+    room: roomName.value,
+    content: Content.value
+  })
+}
+
 // #endregion
 
 // イベント登録をまとめる
@@ -317,6 +328,7 @@ const closeModal = () => {
               {{ chat.user }}さんの投稿 [{{ chat.time }}]: {{ chat.content }}
               <button v-if="chat.user === userName" @click="onEditPublish(i)">編集</button>
               <button v-if="chat.user === userName" @click="onDeletePublish(i)">削除</button>
+              <button @click="PublishtoMemo(i)">メモ</button>
             </template>
             <template v-else-if="chat.type === 'system'">
               {{ chat.user }}さんが{{ chat.content }}
