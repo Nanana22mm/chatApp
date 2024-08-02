@@ -341,8 +341,8 @@ const urlName = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
             </div>
             <div class="position-fixed col-5" style="height: 30vh; padding: 0 10px;">
                 <div style="height: 3vh;"></div>
-                <textarea variant="outlined" style="height: 20vh" class="w-100" placeholder="Write a message" rows="4" v-model="Content"></textarea>
-                <div class="d-flex justify-content-end" style="height: 5vh">
+                <textarea variant="outlined" style="height: 18vh" class="w-100" placeholder="Write a message" rows="4" v-model="Content"></textarea>
+                <div class="d-flex justify-content-end" style="height: 7vh;min-height: 10px">
                   <button class="btn btn-warning"  @click="onMemo">memo</button>
                   <div>&nbsp;</div>
                   <button class="btn btn-warning" @click="onPublish">▶</button>
