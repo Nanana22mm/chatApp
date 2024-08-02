@@ -124,11 +124,18 @@ const onDeleteMemo = (index) => {
   socket.emit("deleteEvent", roomName.value, {
     index: index,
     name: userName.value,
-    time: chatList[index].time,
-    oldData: chatList[index].content,
+    time: memoList[index].time,
+    oldData: memoList[index].content,
     type: ChatType.memo
   });
   memoList.splice(index, 1)
+}
+
+// メモを下書きとして活用: メモに書いていたものを投稿できるようにする
+// メモを投稿リストに追加．そのメモはメモリストから削除する
+const onAddMemointoPublish = (index) => {
+  socket.emit("publishEvent",roomName.value, memoList[index].time, userName.value, memoList[index].content, ChatType.post);
+  onDeleteMemo(index);
 }
 
 // メモを編集する
@@ -138,9 +145,9 @@ const onEditMemo = (index) => {
     socket.emit("editEvent", roomName.value, {
       index: index,
       name: userName.value,
-      time: chatList[index].time,
+      time: memoList[index].time,
       newData: newContent,
-      oldData: chatList[index].content, 
+      oldData: memoList[index].content, 
       type: ChatType.memo
     });
     memoList[index].content = newContent
@@ -299,6 +306,7 @@ const closeModal = () => {
               {{ chat.user }}さんのメモ [{{ chat.time }}]: {{ chat.content }}
               <button @click="onEditMemo(i)">編集</button>
               <button @click="onDeleteMemo(i)">削除</button>
+              <button @click="onAddMemointoPublish(i)">投稿する</button>
           </li>
         </ul>
       </div>
