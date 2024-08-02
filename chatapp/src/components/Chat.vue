@@ -58,11 +58,9 @@ onMounted(() => {
   socket.emit("initializeRequestEvent", roomName.value, userName.value);
 
   socket.on("userList", (data)=>{
-    userList = data
-    console.log(userList)
+    const userList = data
   })
 })
-
 // #endregion
 
 // 投稿メッセージをサーバに送信する
@@ -274,10 +272,14 @@ const closeModal = () => {
   showModal.value = false
 }
 
+<<<<<<< HEAD
 /* Get Current Url */
 const currentUrl = window.location.href;
 /* Get Room Name */
 const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('/') + 1));
+=======
+
+>>>>>>> 14b0825 (pullのため)
 
 </script>
 
@@ -321,6 +323,18 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
         <!-- Room Member All -->
          <h5 style="text-align: center; padding: 5px 0;" ></h5>
         </div>
+  <ul>
+    <li v-for="(chat, i) in userList" :key="i"></li>
+  </ul>
+  <div class="mx-auto my-5 px-4">
+    <h1 class="text-h3 font-weight-medium">Vue.js Chat チャットルーム</h1>
+    <div class="mt-10">
+      <p>{{userList.name}}さん</p>
+      <p>ログインユーザ：{{ userName }}さん</p>
+      <textarea variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area" v-model="Content"></textarea>
+      <div class="mt-5">
+        <button class="button-normal" @click="onPublish">投稿</button>
+        <button class="button-normal util-ml-8px"  @click="onMemo">メモ</button>
       </div>
     <!-- Center Space -->
      <div class="col-9" style="padding: 0;">

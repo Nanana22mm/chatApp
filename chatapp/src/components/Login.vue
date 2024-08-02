@@ -119,7 +119,14 @@ const onEnter = (data) => {
   userName.value = `${selectedGrade.value}-${selectedDepartment.value}-${inputUserName.value}`
   roomName.value = room
 
-  const userData = {name: userName, grade: selectedGrade, faculty:selectedFaculty, department: selectedDepartment }
+  //ユーザーデータをサーバに送る
+  const userData =
+   {
+    name: userName.value,
+    grade: selectedGrade.value,
+    faculty:selectedFaculty.value,
+    department: selectedDepartment.value, 
+  }
 
   socket.emit("userData", userData)
     // 入室メッセージを送信

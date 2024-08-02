@@ -106,10 +106,11 @@ async function initializeData(room, name) {
 
   console.log('initializeData posts', posts);
   console.log('initializeData memos', memos);
-
+  
   return { posts, memos };
 }
 
+let userList = []
 export default (io, socket) => {
   // 初期化時: クライアントからリクエストを受け取ったら，DB のデータをクライアントに送信する
   socket.on("initializeRequestEvent", (room, name) => {
@@ -184,11 +185,13 @@ export default (io, socket) => {
     }
   })
 
-  //ユーザーリストの表示
+   //ユーザーリストの表示
   socket.on("userData", (data) => {
-    // userList.push(data)
-    socket.emit("userList", data)
-  })
+    userList.push(data)
+    console.log(userList)
+    socket.emit("userList", userList)
+    socket.emit("updateUserList", userList)
+    })
 }
 
 
