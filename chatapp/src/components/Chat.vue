@@ -214,7 +214,6 @@ const onEditPublish = (index) => {
 const PublishtoMemo = (index) => {
   // メモの内容を自分のサーバに送信する
   socket.emit("publishEvent", roomName.value, chatList[index].time, userName.value, chatList[index].content, ChatType.memo)
-
   memoList.unshift({
     time: chatList[index].time,
     user: userName.value,
