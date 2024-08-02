@@ -124,8 +124,8 @@ const onDeleteMemo = (index) => {
   socket.emit("deleteEvent", roomName.value, {
     index: index,
     name: userName.value,
-    time: chatList[index].time,
-    oldData: chatList[index].content,
+    time: memoList[index].time,
+    oldData: memoList[index].content,
     type: ChatType.memo
   });
   memoList.splice(index, 1)
@@ -138,9 +138,9 @@ const onEditMemo = (index) => {
     socket.emit("editEvent", roomName.value, {
       index: index,
       name: userName.value,
-      time: chatList[index].time,
+      time: memoList[index].time,
       newData: newContent,
-      oldData: chatList[index].content, 
+      oldData: memoList[index].content, 
       type: ChatType.memo
     });
     memoList[index].content = newContent
@@ -209,6 +209,18 @@ const onEditPublish = (index) => {
     });
     chatList[index].content = newContent;
   }
+}
+
+const PublishtoMemo = (index) => {
+  // メモの内容を自分のサーバに送信する
+  socket.emit("publishEvent", roomName.value, chatList[index].time, userName.value, chatList[index].content, ChatType.memo)
+
+  memoList.unshift({
+    time: chatList[index].time,
+    user: userName.value,
+    room: roomName.value,
+    content: Content.value
+  })
 }
 
 // #endregion
@@ -309,6 +321,7 @@ const closeModal = () => {
               {{ chat.user }}さんの投稿 [{{ chat.time }}]: {{ chat.content }}
               <button v-if="chat.user === userName" @click="onEditPublish(i)">編集</button>
               <button v-if="chat.user === userName" @click="onDeletePublish(i)">削除</button>
+              <button @click="PublishtoMemo(i)">メモ</button>
             </template>
             <template v-else-if="chat.type === 'system'">
               {{ chat.user }}さんが{{ chat.content }}
