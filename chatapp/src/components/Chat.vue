@@ -285,7 +285,7 @@ const closeModal = () => {
 /* Get Current Url */
 const currentUrl = window.location.href;
 /* Get Room Name */
-const urlName = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
+const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('/') + 1));
 
 </script>
 
@@ -354,6 +354,8 @@ const urlName = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
                         <button class="btn btn-secondary edit-delete-button" v-if="chat.user === userName" @click="onEditPublish(i)">編集</button>
                         <div>&nbsp;</div>
                         <button class="btn btn-danger edit-delete-button" v-if="chat.user === userName" @click="onDeletePublish(i)">削除</button>
+                        <!--<div>&nbsp;</div>
+                        <button class="btn btn-secondary edit-delete-button" v-if="chat.user === userName" @click="onAddMemointoPublish(i)" >→</button>-->
                       </div>
                     </div>
                   </template>
@@ -384,9 +386,11 @@ const urlName = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
                   <div class="row">
                     <div class="col-7 message-container">[{{ chat.time }}]: {{ chat.content }}</div>
                     <div class="col-5 d-flex">
-                      <button class="btn btn-secondary edit-delete-button" @click="onEditMemo(i)">編集</button>
+                      <button class="btn btn-secondary edit-delete-button"  @click="onEditMemo(i)">編集</button>
                       <div>&nbsp;</div>
                       <button class="btn btn-danger edit-delete-button" @click="onDeleteMemo(i)">削除</button>
+                      <div>&nbsp;</div>
+                      <button class="btn btn-secondary edit-delete-button" @click="onAddMemointoPublish(i)">←</button>
                     </div>
                   </div>
                 </li>
