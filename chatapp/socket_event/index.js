@@ -161,36 +161,6 @@ export default (io, socket) => {
     }
   })
 
-  // ユーザー情報の重複防止
-  socket.on("sendUserInformation", (data) => {
-    // socket.emit("receiveUserInformation", data)
-    const userListFlag = userList.includes(data)
-    if (!userListFlag) {
-      userList.push(data)
-      socket.emit("receiveUserList", userList)
-      socket.emit("userInformationFlag", false)
-    }else{
-      socket.emit("userInformationFlag", true)
-    }
-  } )
-
-  // socket.on("sendUserInformation", (data) => {
-  //   socket.emit("receiveUserInformation", data)
-  //   socket.on("exitUserList", (updateUserList)=>{
-  //     if(updateUserList){
-  //       userList = updateUserList
-  //     }
-  //     const userListFlag = userList.includes(data)
-  //     console.log(userListFlag)
-  //     if (!userListFlag) {
-  //       userList.push(data)
-  //       socket.emit("receiveUserList", userList)
-  //       socket.emit("userInformationFlag", false)
-  //     }else{
-  //       socket.emit("userInformationFlag", true)
-  //     }
-  //   } )
-  // })
 }
 
 
