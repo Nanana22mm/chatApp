@@ -125,45 +125,52 @@ const onEnter = (data) => {
 <body>
 <div class="login-section">
   <div class="mx-auto my-5 px-4">
-    <h1 class="text-h3 font-weight-medium">rakus質問箱</h1>
+    <h1 class="text-h3 font-weight-medium text-center">rakus質問箱</h1>
 
-    <div class="mt-10">
-      <p>ユーザー名</p>
-      <input v-model="inputUserName" type="text" class="user-name-text" />
+    <div class="layout-wrapper">
+      <div class="left-column">
+        <div class="mt-10">
+          <p>ユーザー名</p>
+          <input v-model="inputUserName" type="text" class="user-name-text"/>
 
-      <p>学年</p>
-      <select v-model="selectedGrade" class="user-name-text">
-        <option value="">学年を選択</option>
-        <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}</option>
-      </select>
-    
-      <p>学部</p>
-      <select v-model="selectedFaculty" @change="onFacultyChange" class="user-name-text">
-        <option value="">学部を選択</option>
-        <option v-for="faculty in faculties" :key="faculty.value" :value="faculty.value">{{ faculty.label }}</option>
-      </select>
-    
-      <p>学科</p>
-      <select v-model="selectedDepartment" class="user-name-text">
-        <option value="">学科を選択</option>
-        <option v-for="department in departments" :key="department" :value="department">{{ department }}</option>
-      </select>
+          <p>学年</p>
+          <select v-model="selectedGrade" class="user-name-text">
+            <option value="">学年を選択</option>
+            <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}</option>
+          </select>
+          
+          <p>学部</p>
+          <select v-model="selectedFaculty" @change="onFacultyChange" class="user-name-text">
+            <option value="">学部を選択</option>
+            <option v-for="faculty in faculties" :key="faculty.value" :value="faculty.value">{{ faculty.label }}</option>
+          </select>
+        
+          <p>学科</p>
+          <select v-model="selectedDepartment" class="user-name-text">
+            <option value="">学科を選択</option>
+            <option v-for="department in departments" :key="department" :value="department">{{ department }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="right-column">
+        <div class="mt-10">
+          <p>チャットルームを作成</p>
+          <input v-model="newRoomName" type="text" class="user-name-text" placeholder="新しいチャットルームを作成" />
+        </div>
+        
+        <div class="mt-2">
+          <p>チャットルームを選択</p>
+          <select v-model="selectedRoomName" class="user-name-text" size="9">
+            <option v-for="room in chatRooms" :key="room" :value="room">{{ room }}</option>
+          </select>
+        </div>
+      </div>
     </div>
 
-    <div class="mt-10">
-      <p>チャットルームを作成</p>
-      <input v-model="newRoomName" type="text" class="user-name-text" placeholder="新しいチャットルームを作成" />
+    <div class="text-center">
+      <button type="button" @click="onEnter" class="button-normal">入室する</button>
     </div>
-    
-    <div class="mt-10">
-      <p>チャットルームを選択</p>
-      <select v-model="selectedRoomName" class="user-name-text" size="8">
-        <option value="">チャットルームを選択</option>
-        <option v-for="room in chatRooms" :key="room" :value="room">{{ room }}</option>
-      </select>
-    </div>
-
-    <button type="button" @click="onEnter" class="button-normal">入室する</button>
   </div>
 </div>
 </body>
@@ -245,7 +252,42 @@ body {
 
 .login-section button {
     padding: 10px;
-    width: 100%;
+    width: 200px;
     cursor: pointer;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.layout-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 20px;
+}
+
+.left-column, .right-column {
+  flex: 1;
+  max-width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.button-normal {
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .layout-wrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .left-column, .right-column {
+    width: 100%;
+  }
 }
 </style>
