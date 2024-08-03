@@ -50,20 +50,43 @@ async function editDatabase(chatType, editType, name, time, room, chatStruct) {
       break;
     case EditType.delete:
       oldData = chatStruct.oldData;
-      await db.run('DELETE FROM chatList WHERE name = ? AND data = ? AND time = ? AND room = ? AND type = ?', name, oldData, time, room, chatType).then(result => {
-        console.log(`delete success: ${oldData}, ${name}, ${time}, ${room}, ${chatType}`);
-      }).catch(error => {
-        console.log(error);
-      });
+
+      switch (chatType) {
+        case ChatType.post:
+          await db.run('DELETE FROM chatList WHERE name = ? AND data = ? AND time = ? AND room = ? AND type = ?', name, oldData, time, room, chatType).then(result => {
+            console.log(`delete success: ${oldData}, ${name}, ${time}, ${room}, ${chatType}`);
+          }).catch(error => {
+            console.log(error);
+          });
+          break;
+        case ChatType.memo:
+          await db.run('DELETE FROM chatList WHERE name = ? AND data = ? AND time = ? AND type = ?', name, oldData, time, chatType).then(result => {
+            console.log(`delete success: ${oldData}, ${name}, ${time}, ${chatType}`);
+          }).catch(error => {
+            console.log(error);
+          });
+          break;
+      }
       break;
     case EditType.update:
       newData = chatStruct.newData;
       oldData = chatStruct.oldData;
-      await db.run('UPDATE chatList SET data = ? WHERE name = ? AND data = ? AND time = ? AND room = ? AND type = ?', newData, name, oldData, time, room, chatType).then(result => {
-        console.log(`update success: ${newData}, ${name}, ${time}, ${room}, ${chatType}`);
-      }).catch(error => {
-        console.log(error);
-      });
+      switch (chatType) {
+        case chatType.post:
+          await db.run('UPDATE chatList SET data = ? WHERE name = ? AND data = ? AND time = ? AND room = ? AND type = ?', newData, name, oldData, time, room, chatType).then(result => {
+            console.log(`update success: ${newData}, ${name}, ${time}, ${room}, ${chatType}`);
+          }).catch(error => {
+            console.log(error);
+          });
+          break;
+        case chatType.memo:
+          await db.run('UPDATE chatList SET data = ? WHERE name = ? AND data = ? AND time = ? AND type = ?', newData, name, oldData, time, chatType).then(result => {
+            console.log(`update success: ${newData}, ${name}, ${time}, ${chatType}`);
+          }).catch(error => {
+            console.log(error);
+          });
+          break;
+      }
       break;
   }
   // const data2 = await db.all('SELECT * FROM chatList WHERE room = ?', room);
