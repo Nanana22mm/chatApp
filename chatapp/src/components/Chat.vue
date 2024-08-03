@@ -354,8 +354,8 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
                         <button class="btn btn-secondary edit-delete-button" v-if="chat.user === userName" @click="onEditPublish(i)">編集</button>
                         <div>&nbsp;</div>
                         <button class="btn btn-danger edit-delete-button" v-if="chat.user === userName" @click="onDeletePublish(i)">削除</button>
-                        <!--<div>&nbsp;</div>
-                        <button class="btn btn-secondary edit-delete-button" v-if="chat.user === userName" @click="onAddMemointoPublish(i)" >→</button>-->
+                        <div>&nbsp;</div>
+                        <button class="btn btn-secondary edit-delete-button" v-if="chat.user === userName" @click="onAddPublishintoMemo(i)" >→</button>
                       </div>
                     </div>
                   </template>
