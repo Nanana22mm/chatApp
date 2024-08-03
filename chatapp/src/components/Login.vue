@@ -125,7 +125,7 @@ const onEnter = (data) => {
 <body>
 <div class="login-section">
   <div class="mx-auto my-5 px-4">
-    <h1 class="text-h3 font-weight-medium text-center">rakus質問箱</h1>
+    <h1 class="pt-5 text-h3 font-weight-medium text-center">rakus質問箱</h1>
 
     <div class="layout-wrapper">
       <div class="left-column">
