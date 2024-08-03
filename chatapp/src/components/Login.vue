@@ -101,14 +101,20 @@ const onEnter = (data) => {
   }
   // 新しいルームの作成
   if (newRoomName.value) {
-    socket.emit('createRoom', newRoomName.value)
-    socket.on('createRoomSuccess', (flag) => {
-      if (!flag){
-        alert("このチャットルームはすでに存在します。")
-      }
-    })
+    if (newRoomName.value.length > 20) {
+      alert("ルーム名は20文字以内にしてください。")
+      console.log(newRoomName.value.length)
+      return
+    } else {
+      socket.emit('createRoom', newRoomName.value)
+      socket.on('createRoomSuccess', (flag) => {
+        if (!flag){
+          alert("このチャットルームはすでに存在します。")
+        }
+      })
+    }
   }
-  
+
   // 全体で使用するname, roomに入力されたユーザー名, ルーム名を格納
   userName.value = `${selectedGrade.value}-${selectedDepartment.value}-${inputUserName.value}`
   roomName.value = room
