@@ -1,5 +1,5 @@
 <script setup>
-import { inject, ref, reactive, onMounted} from "vue"
+import { inject, ref, reactive, onMounted, nextTick } from "vue"
 import { useRouter } from "vue-router"
 import socketManager from '../socketManager.js'
 
@@ -218,6 +218,17 @@ const onEditPublish = (index) => {
   }
 }
 
+const onAddPublishintoMemo = (index) => {
+  // メモの内容を自分のサーバに送信する
+  socket.emit("publishEvent", roomName.value, chatList[index].time, userName.value, chatList[index].content, ChatType.memo)
+  memoList.unshift({
+    time: chatList[index].time,
+    user: userName.value,
+    room: roomName.value,
+    content: chatList[index].content
+  })
+}
+
 // #endregion
 
 // イベント登録をまとめる
@@ -271,6 +282,11 @@ const closeModal = () => {
   showModal.value = false;
 }
 
+/* Get Current Url */
+const currentUrl = window.location.href;
+/* Get Room Name */
+const urlName = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
+
 </script>
 
 <template>
@@ -291,50 +307,115 @@ const closeModal = () => {
     </div>
   <!--End Modal Window-->
 
-  <div class="mx-auto my-5 px-4">
-    <h1 class="text-h3 font-weight-medium">Vue.js Chat チャットルーム</h1>
-    <div class="mt-10">
-      <p>ログインユーザ：{{ userName }}さん</p>
-      <textarea variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area" v-model="Content"></textarea>
-      <div class="mt-5">
-        <button class="button-normal" @click="onPublish">投稿</button>
-        <button class="button-normal util-ml-8px"  @click="onMemo">メモ</button>
+  <div class="row" style="margin: 0;">
+    <!-- Left side space -->
+     <div class="col-3" style="padding: 0;">
+      <div class="left-side-space">
+        <div style="text-align: center;" >
+          <h4 style="line-height: 10vh;" >{{ userName }}</h4>
+        </div>
+        <div class="bg-black text-white" style="text-align: center; padding: 10px 0;">
+          <h4>{{ urlName }}</h4>
+        </div>
+
+        <!-- Room Member All -->
+         <h5 style="text-align: center; padding: 5px 0;" ></h5>
+
       </div>
-      <div class="mt-5" v-if="memoList.length !== 0">
-        <ul>
-          <li v-for="(chat, i) in memoList" :key="i">
-              {{ chat.user }}さんのメモ [{{ chat.time }}]: {{ chat.content }}
-              <button @click="onEditMemo(i)">編集</button>
-              <button @click="onDeleteMemo(i)">削除</button>
-              <button @click="onAddMemointoPublish(i)">投稿する</button>
-          </li>
-        </ul>
+     </div>
+
+    <!-- Center Space -->
+     <div class="col-9" style="padding: 0;">
+      <!-- Question Theme -->
+       <div class="room-name" >
+        <div class="row" style="margin: 0;">
+          <div class="col-10">
+            <h4 style="text-align: center; line-height: 10vh;"> {{ urlName }} </h4>
+          </div>
+          <div class="col-2" style="margin: auto 0">
+            <button type="button" class="btn btn-light" @click="openModal">退室する</button>
+          </div>
+        </div>
+       </div>
+
+        <div class="row" style="margin: 0;">
+          <!-- Center Space -->
+          <div class="col-7" style="padding: 0;">
+            <!-- Display Chat Message -->
+            <div v-if="chatList.length !== 0" class="scroll-center-space">
+              <ul style="width: 95%; margin: 0 auto;">
+                <li v-for="(chat, i) in chatList" :key="i">
+                  <template v-if="chat.type === 'publish'">
+                    <div class="row message-container">
+                      <div class="col-8">
+                        {{ chat.user }} [{{ chat.time }}]: {{ chat.content }}
+                      </div>
+                      <div class="col-4 d-flex">
+                        <button class="btn btn-secondary edit-delete-button" v-if="chat.user === userName" @click="onEditPublish(i)">編集</button>
+                        <div>&nbsp;</div>
+                        <button class="btn btn-danger edit-delete-button" v-if="chat.user === userName" @click="onDeletePublish(i)">削除</button>
+                      </div>
+                    </div>
+                  </template>
+                  <template v-else-if="chat.type === 'system'">
+                    {{ chat.user }} {{ chat.content }}
+                  </template>
+                </li>
+              </ul>
+            </div>
+            <div class="position-fixed col-5 bottom-0" style="height: 30vh; padding: 0 10px;">
+                <div style="height: 3vh;"></div>
+                <textarea variant="outlined" style="height: 18vh" class="w-100" placeholder="Write a message" rows="4" v-model="Content"></textarea>
+                <div class="d-flex justify-content-end" style="height: 7vh;min-height: 10px">
+                  <button class="btn btn-warning"  @click="onMemo">memo</button>
+                  <div>&nbsp;</div>
+                  <button class="btn btn-warning" @click="onPublish">▶</button>
+                </div>
+                <div style="height: 2vh;"></div>
+            </div>
+          </div>
+        <!-- Right side space -->
+        <div class="col-5 right-side-space" style="padding: 0;">
+          <div class="scroll-right-space" >
+            <!-- output memo -->
+            <div v-if="memoList.length !== 0">
+              <ul style="width: 90%; margin: 0 auto;">
+                <li v-for="(chat, i) in memoList" :key="i">
+                  <div class="row">
+                    <div class="col-7 message-container">[{{ chat.time }}]: {{ chat.content }}</div>
+                    <div class="col-5 d-flex">
+                      <button class="btn btn-secondary edit-delete-button" @click="onEditMemo(i)">編集</button>
+                      <div>&nbsp;</div>
+                      <button class="btn btn-danger edit-delete-button" @click="onDeleteMemo(i)">削除</button>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="mt-5" v-if="chatList.length !== 0">
-        <ul>
-          <li v-for="(chat, i) in chatList" :key="i">
-            <template v-if="chat.type === 'publish'">
-              {{ chat.user }}さんの投稿 [{{ chat.time }}]: {{ chat.content }}
-              <button v-if="chat.user === userName" @click="onEditPublish(i)">編集</button>
-              <button v-if="chat.user === userName" @click="onDeletePublish(i)">削除</button>
-            </template>
-            <template v-else-if="chat.type === 'system'">
-              {{ chat.user }}さんが{{ chat.content }}
-            </template>
-          </li>
-        </ul>
       </div>
-    </div>
-    <button type="button" class="button-normal button-exit" @click="openModal">退室する</button>
   </div>
 </div>
 </template>
 
 <style scoped>
+li {
+  list-style: none;
+}
+ul {
+  padding-left: none;
+}
 .link {
   text-decoration: none;
 }
-
+textarea {
+  border: 2px solid #000;
+  border-radius: 4px;
+  padding: 10px;
+  box-sizing: border-box;
+}
 .area {
   width: 500px;
   border: 1px solid #000;
@@ -356,6 +437,42 @@ const closeModal = () => {
   color: #000;
   margin-top: 8px;
 }
+
+/* Room CSS */
+.left-side-space {
+  background-color: #E6E6E6;
+  height: 100vh;
+  width: 100%;
+}
+.right-side-space {
+  background-color: #F5F5F5;
+  height: 90vh;
+}
+.room-name {
+  background-color: #D9D9D9;
+  height: 10vh;
+  line-height: 10vh;
+}
+.left-side-room-name {
+  background-color: #E6E6E6;
+  height: 10vh;
+  line-height: 10vh;
+}
+.message-container {
+  padding: 5px 0;
+}
+.edit-delete-button {
+  margin: 7px 0;
+}
+.scroll-center-space {
+  height: 60vh;
+  overflow: auto;
+}
+.scroll-right-space {
+  height: 90vh;
+  overflow: auto;
+}
+
 /*Modal CSS*/
 #overlay{
   z-index:1;
