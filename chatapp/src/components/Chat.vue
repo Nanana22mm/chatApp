@@ -285,7 +285,7 @@ const closeModal = () => {
 /* Get Current Url */
 const currentUrl = window.location.href;
 /* Get Room Name */
-const urlName = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
+const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('/') + 1));
 
 </script>
 
