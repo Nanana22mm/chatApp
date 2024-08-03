@@ -13,8 +13,9 @@ var EditType = {
   update: 3,
 };
 
-//ユーザー名の配列
-
+//ユーザー情報の配列
+let userList = []
+let userChecker = [" "]
 
 // DB の初期化
 // database.db を読み込んで，table を作成する
@@ -104,20 +105,19 @@ async function initializeData(room, name) {
   const posts = await db.all('SELECT * FROM chatList WHERE room = ? AND type = ?', room, ChatType.post);
   const memos = await db.all('SELECT * FROM chatList WHERE name = ? AND type = ?', name, ChatType.memo);
 
-  console.log('initializeData posts', posts);
-  console.log('initializeData memos', memos);
+  // console.log('initializeData posts', posts);
+  // console.log('initializeData memos', memos);
   
   return { posts, memos };
 }
 
-let userList = []
 export default (io, socket) => {
   // 初期化時: クライアントからリクエストを受け取ったら，DB のデータをクライアントに送信する
   socket.on("initializeRequestEvent", (room, name) => {
     initializeData(room, name).then(({ posts, memos }) => {
 
-      console.log('request posts', posts);
-      console.log('request memos', memos);
+      // console.log('request posts', posts);
+      // console.log('request memos', memos);
 
       socket.emit("initializeReplyEvent", ({ posts, memos }));
     })
@@ -187,11 +187,31 @@ export default (io, socket) => {
 
    //ユーザーリストの表示
   socket.on("userData", (data) => {
-    userList.push(data)
-    console.log(userList)
-    socket.emit("userList", userList)
-    socket.emit("updateUserList", userList)
+    const userFlag = userList.includes(data)
+    if (!userFlag){
+      socket.emit("userFlag", false)
+      userList.push(data)
+      socket.emit("connectUser", userList)
+      socket.emit("updateConnectUser", userList)
+    }else{
+      socket.emit("userFlag", true)
+      return
+    }
     })
+
+    
+  // //ユーザー情報の重複防止
+  // socket.on("sendUserInformation", (data) => {
+  //   socket.emit("receiveUserInformation", data)
+  //   const userListFlag = userList.includes(data)
+  //   if (!userListFlag) {
+  //     userList.push(data)
+  //     socket.emit("receiveUserList", userList)
+  //     socket.emit("userInformationFlag", false)
+  //   }else{
+  //     socket.emit("userInformationFlag", true)
+  //   }
+  // } )
 }
 
 

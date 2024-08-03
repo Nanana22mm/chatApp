@@ -8,7 +8,6 @@ var ChatType = {
   memo: 2
 };
 
-let userList = ref([])
 
 
 // #region global state
@@ -28,6 +27,7 @@ const memoList = reactive([])
 const showModal = ref(false);
 // #endregion
 
+let connectUser = []
 // クライアントの起動
 onMounted(() => {
   // サーバが DB のデータを送信してきた時に，それを取得できるように準備をしておく
@@ -57,10 +57,11 @@ onMounted(() => {
   // DB のデータを送信するよう，サーバへリクエストを送信する
   socket.emit("initializeRequestEvent", roomName.value, userName.value);
 
-  socket.on("userList", (data)=>{
-    const userList = data
-  })
-})
+  socket.on("connectUser", (data)=>{
+    console.log(data)
+    connectUser = data
+  
+  })})
 // #endregion
 
 // 投稿メッセージをサーバに送信する
@@ -272,14 +273,10 @@ const closeModal = () => {
   showModal.value = false
 }
 
-<<<<<<< HEAD
 /* Get Current Url */
 const currentUrl = window.location.href;
 /* Get Room Name */
 const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('/') + 1));
-=======
-
->>>>>>> 14b0825 (pullのため)
 
 </script>
 
@@ -324,12 +321,16 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
          <h5 style="text-align: center; padding: 5px 0;" ></h5>
         </div>
   <ul>
-    <li v-for="(chat, i) in userList" :key="i"></li>
+    <li v-for="(user, i) in connectUser" :key="i">
+      {{ user.grade }} 
+      {{ user.faculty }}
+      {{ user.department}} 
+      {{ user.name }} さん
+    </li>
   </ul>
   <div class="mx-auto my-5 px-4">
     <h1 class="text-h3 font-weight-medium">Vue.js Chat チャットルーム</h1>
     <div class="mt-10">
-      <p>{{userList.name}}さん</p>
       <p>ログインユーザ：{{ userName }}さん</p>
       <textarea variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area" v-model="Content"></textarea>
       <div class="mt-5">
