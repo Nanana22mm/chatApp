@@ -14,7 +14,7 @@ var EditType = {
 };
 
 //ユーザー名の配列
-let userList = [" "]
+
 
 // DB の初期化
 // database.db を読み込んで，table を作成する
@@ -184,6 +184,11 @@ export default (io, socket) => {
     }
   })
 
+  //ユーザーリストの表示
+  socket.on("userData", (data) => {
+    // userList.push(data)
+    socket.emit("userList", data)
+  })
 }
 
 

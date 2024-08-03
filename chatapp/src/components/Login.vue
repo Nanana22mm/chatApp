@@ -119,10 +119,14 @@ const onEnter = (data) => {
   userName.value = `${selectedGrade.value}-${selectedDepartment.value}-${inputUserName.value}`
   roomName.value = room
 
+  const userData = ref({name: userName, grade: selectedGrade, faculty:selectedFaculty, department: selectedDepartment })
+
+  socket.emit("userData", userData)
     // 入室メッセージを送信
   socket.emit("enterEvent", userName.value, room)
   //チャット画面へ遷移
-  router.push({ name: "chat", params: { roomName: room }})}
+  router.push({ name: "chat", params: { roomName: room }})
+}
 // #endregion
 
 </script>

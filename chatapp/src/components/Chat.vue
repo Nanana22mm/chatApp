@@ -8,6 +8,9 @@ var ChatType = {
   memo: 2
 };
 
+let userList = ref([])
+
+
 // #region global state
 const userName = inject("userName")
 const roomName = inject("roomName")
@@ -45,14 +48,6 @@ onMounted(() => {
         content: data
       })
     });
-
-    // //ユーザーリストの取得
-    // socket.on("receiveUserList", (data) =>{
-    //   console.log(data)
-    //   data.map(userList => {
-    //   })
-    // });
-
   });
 
   // イベントの登録
@@ -61,6 +56,11 @@ onMounted(() => {
 
   // DB のデータを送信するよう，サーバへリクエストを送信する
   socket.emit("initializeRequestEvent", roomName.value, userName.value);
+
+  socket.on("userList", (data)=>{
+    userList = data
+    console.log(userList)
+  })
 })
 
 // #endregion
@@ -267,19 +267,11 @@ const registerSocketEvent = () => {
 }
 /*Open Modal*/
 const openModal = () => {
-  // socket.on("receiveUserInformation", (data) => {
-  //   console.log(data)
-  //   socket.on("receiveUserList", (Listdata)=>{
-  //     const userIndex = Listdata.indeOf(data)
-  //     Listdata.splice(index, userIndex)
-  //     socket.emit("exitUserList", Listdata)
-  //   })
-  // }) 
   showModal.value = true; 
 }
 /*Close Modal*/
 const closeModal = () => {
-  showModal.value = false;
+  showModal.value = false
 }
 
 /* Get Current Url */
@@ -288,6 +280,8 @@ const currentUrl = window.location.href;
 const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('/') + 1));
 
 </script>
+
+
 
 <template>
   <!--Modal Window-->
@@ -320,9 +314,6 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
 
         <!-- Room Member All -->
          <h5 style="text-align: center; padding: 5px 0;" ></h5>
-
-      </div>
-     </div>
 
     <!-- Center Space -->
      <div class="col-9" style="padding: 0;">
