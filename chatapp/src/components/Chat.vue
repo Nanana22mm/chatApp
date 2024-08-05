@@ -316,10 +316,12 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
             {{ user.faculty }}
           </h4>
         </div>
-
         <!-- Room Member All -->
-         <h5 style="text-align: center; padding: 5px 0;" ></h5>
-        </div>
+        <h5 style="text-align: center; padding: 5px 0;" ></h5>
+       </div>
+      </div>
+  </div>
+    
   <ul>
     <li v-for="(user, i) in connectUser" :key="i">
       {{ user.grade }} 
@@ -414,7 +416,7 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
       </div>
       </div>
   </div>
-</div>
+ </div>
 </template>
 
 <style scoped>
