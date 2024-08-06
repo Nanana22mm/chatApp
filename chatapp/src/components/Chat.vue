@@ -21,6 +21,7 @@ const socket = socketManager.getInstance()
 // #region reactive variable
 const Content = ref('')
 const chatList = reactive([])
+const memberList = reactive([])
 const memoList = reactive([])
 const showModal = ref(false);
 // #endregion
@@ -45,14 +46,20 @@ onMounted(() => {
         content: data
       })
     });
+  });
 
-    // //ユーザーリストの取得
-    // socket.on("receiveUserList", (data) =>{
-    //   console.log(data)
-    //   data.map(userList => {
-    //   })
-    // });
-
+  socket.on("initializeMemberListReply", async({members}) => {
+    // console.log(members);
+    members.forEach(({name, room, grades, faculty, department}) => {
+      memberList.unshift({
+        name: name, 
+        grades: grades, 
+        faculty: faculty, 
+        department: department, 
+        room: room 
+      })
+    });
+    console.log(memberList);
   });
 
   // イベントの登録
@@ -78,7 +85,6 @@ const onPublish = () => {
 
   // 入力欄を初期化
   Content.value = ""
-  chatContent.value = ""
 }
 
 // 退室メッセージをサーバに送信する
@@ -316,6 +322,12 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
         </div>
         <div class="bg-black text-white" style="text-align: center; padding: 10px 0;">
           <h4>{{ urlName }}</h4>
+          <h4 v-for="(user, i) in memberList" :key="i">
+            {{ user.name }}
+            {{ user.department }}
+            {{ user.grade }}
+            {{ user.faculty }}
+          </h4>
         </div>
 
         <!-- Room Member All -->

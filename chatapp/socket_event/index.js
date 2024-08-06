@@ -13,9 +13,6 @@ var EditType = {
   update: 3,
 };
 
-//ユーザー名の配列
-let userList = [" "]
-
 // DB の初期化
 // database.db を読み込んで，table を作成する
 async function setupDB() {
@@ -110,6 +107,43 @@ async function initializeData(room, name) {
   return { posts, memos };
 }
 
+async function memberListDB() {
+  const db = await open({
+    filename: 'memberList.db',
+    driver: sqlite3.Database
+  });
+
+  await db.exec('CREATE TABLE IF NOT EXISTS memberList (name TEXT, grade TEXT, faculty TEXT, department TEXT, room TEXT )');
+  return db
+}
+
+// DB に chatList のデータを挿入する
+async function editMemberList(editType, name, room, memberListStruct) {
+  const db = await memberListDB();
+  if (!db) {
+    console.log('cannot open database');
+    return;
+  }
+  switch (editType) {
+    case EditType.insert:
+      await db.run('INSERT INTO memberList (name, grade, faculty, department, room) VALUES (?, ?, ?, ?, ?)', name, memberListStruct.grade, memberListStruct.faculty, memberListStruct.department, room).then
+        (result => {
+          console.log(`insert success: ${name}, ${memberListStruct.grade}, ${memberListStruct.faculty}, ${memberListStruct.department}, ${room}`);
+        }).catch(error => {
+          console.log(error);
+        });
+      break;
+    case EditType.delete:
+      await db.run('DELETE FROM memberList WHERE name = ? AND room = ?', name, room).then(result => {
+      }).catch(error => {
+        console.log(error);
+      });
+      break;
+  }
+  const members = await db.all('SELECT * FROM memberList WHERE room = ?', room);
+  return { members };
+}
+
 export default (io, socket) => {
   // 初期化時: クライアントからリクエストを受け取ったら，DB のデータをクライアントに送信する
   socket.on("initializeRequestEvent", (room, name) => {
@@ -184,6 +218,12 @@ export default (io, socket) => {
     }
   })
 
+  socket.on("initializeMemberListRequest", (name, room, grade, faculty, department) => {
+    editMemberList(EditType.insert, name, room, { grade, faculty, department }).then(({ members }) => {
+      console.log("initializeMemberListReply", members);
+      socket.emit("initializeMemberListReply", ({ members }));
+    })
+  })
 }
 
 
