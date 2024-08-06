@@ -50,10 +50,10 @@ onMounted(() => {
 
   socket.on("initializeMemberListReply", async({members}) => {
     // console.log(members);
-    members.forEach(({name, room, grades, faculty, department}) => {
+    members.forEach(({name, room, grade, faculty, department}) => {
       memberList.unshift({
         name: name, 
-        grades: grades, 
+        grade: grade, 
         faculty: faculty, 
         department: department, 
         room: room 
@@ -155,7 +155,7 @@ const onEditMemo = (index) => {
 }
 
 // サーバから受信した入室メッセージ画面上に表示する
-const onReceiveEnter = (name, grade, faculty, department) => {
+const onReceiveEnter = (name, room, grade, faculty, department) => {
   const memoTime = new Date()
   var Time = memoTime.getFullYear() + '/' + ('0' + (memoTime.getMonth() + 1)).slice(-2) + '/' +('0' + memoTime.getDate()).slice(-2) + ' ' +  ('0' + memoTime.getHours()).slice(-2) + ':' + ('0' + memoTime.getMinutes()).slice(-2);
 
@@ -175,7 +175,7 @@ const onReceiveEnter = (name, grade, faculty, department) => {
 }
 
 // サーバから受信した退室メッセージを受け取り画面上に表示する
-const onReceiveExit = ({name, grade, faculty, department}) => {
+const onReceiveExit = (name, room, grade, faculty, department) => {
   const chatTime = new Date()
   var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
 
@@ -248,8 +248,8 @@ const onAddPublishintoMemo = (index) => {
 // イベント登録をまとめる
 const registerSocketEvent = () => {
   // 入室イベントを受け取ったら実行
-  socket.on("enterEvent", (name, grade, faculty, department) => {
-    onReceiveEnter(name, grade, faculty, department)
+  socket.on("enterEvent", (name, room, grade, faculty, department) => {
+    onReceiveEnter(name, room, grade, faculty, department)
   })
 
   // 退室イベントを受け取ったら実行

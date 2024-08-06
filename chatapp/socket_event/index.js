@@ -159,7 +159,8 @@ export default (io, socket) => {
   // チャットルームに参加、メッセージをクライアントに送信する
   socket.on("enterEvent", (name, room, grade, faculty, department) => {
     socket.join(room)
-    socket.broadcast.to(room).emit("enterEvent", name, grade, faculty, department)
+    socket.broadcast.to(room).emit("enterEvent", name, room, grade, faculty, department)
+    console.log("enterEvent: ", name, room, grade, faculty, department)
   })
 
   // 退室メッセージをクライアントに送信する
