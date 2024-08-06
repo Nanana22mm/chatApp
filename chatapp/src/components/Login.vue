@@ -107,9 +107,11 @@ const onEnter = (data) => {
   }
   // 全体で使用するname, roomに入力されたユーザー名, ルーム名を格納
   userName.value = `${selectedGrade.value}-${selectedDepartment.value}-${inputUserName.value}`
-  roomName.value = room
-    // 入室メッセージを送信
-  socket.emit("enterEvent", userName.value, room)
+  roomName.value = room  
+
+  // 入室メッセージを送信
+  socket.emit("initializeMemberListRequest", userName.value, roomName.value);
+  socket.emit("enterEvent", userName.value, roomName.value);
   //チャット画面へ遷移
   router.push({ name: "chat", params: { roomName: room }})}
 // #endregion
