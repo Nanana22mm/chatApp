@@ -108,53 +108,10 @@ const onEnter = (data) => {
   // 全体で使用するname, roomに入力されたユーザー名, ルーム名を格納
   userName.value = `${selectedGrade.value}-${selectedDepartment.value}-${inputUserName.value}`
   roomName.value = room
-  //ユーザーデータをサーバに送る
-  const userData =
-   {
-    name: inputUserName.value,
-    grade: selectedGrade.value,
-    faculty: selectedFaculty.value,
-    department: selectedDepartment.value, 
-  }
-  
-  socket.emit("memberListRequestEvent", roomName.value);
-   socket.emit("memberListInsert", 
-    inputUserName.value,
-    selectedGrade.value,
-    selectedFaculty.value,
-    selectedDepartment.value,
-    roomName.value)
-  socket.emit("enterEvent", inputUserName.value)
+    // 入室メッセージを送信
+  socket.emit("enterEvent", userName.value, room)
   //チャット画面へ遷移
-  router.push({ name: "chat", params: { roomName: room }})
-  // const userchecker = inputUserName.value + selectedGrade.value + selectedFaculty.value + selectedDepartment.value
-  
-  // const userInformation = inputUserName.value + selectedGrade.value + selectedFaculty.value + selectedDepartment.value
-  // socket.emit("sendUserInformation", userInformation)
-  // socket.on("receiveUserInformation", data)
-  // socket.on("userInformationFlag", (flag)=>{
-  //   if(!flag){
-  //     socket.emit("enterEvent", inputUserName.value)
-  //     //チャット画面へ遷移
-  //     router.push({ name: "chat", params: { roomName: room }})
-  //   }else{
-  //     alert("ユーザー名が重複しています。別のユーザー名を入力してください。")
-  //     return
-  //   }
-  // })
-  // socket.emit("userData", userData)
-  // socket.emit("userChecker", userchecker)
-  // socket.on("userFlag", (flag) =>{
-  //   if (flag){
-  //     alert("'再入室する'をクリックしてください。")
-  //   }else{
-  //       // 入室メッセージを送信
-  //     socket.emit("enterEvent", userName.value, room)
-  //     //チャット画面へ遷移
-  //     router.push({ name: "chat", params: { roomName: room }})
-  //   }
-  // })
-}
+  router.push({ name: "chat", params: { roomName: room }})}
 // #endregion
 </script>
 <template>

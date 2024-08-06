@@ -11,59 +11,6 @@ var EditType = {
   update: 3,
 };
 
-//ユーザー情報の配列
-let memberList = []
-let userChecker = [" "]
-
-async function memberListDB() {
-  const db = await open({
-    filename: 'memberList.db',
-    driver: sqlite3.Database
-  });
-
-  await db.exec('CREATE TABLE IF NOT EXISTS memberList (name TEXT, grade TEXT, faculty TEXT, department TEXT, room TEXT )');
-  return db
-}
-
-// DB に chatList のデータを挿入する
-async function editMemberList(editType, name, room, memberListStruct) {
-  const db = await memberListDB();
-  if (!db) {
-    console.log('cannot open database');
-    return;
-  }
-  switch (editType) {
-    case EditType.insert:
-      await db.run('INSERT INTO memberList (name, grade, faculty, department, room) VALUES (?, ?, ?, ?, ?)',name, memberListStruct.grade, memberListStruct.faculty, memberListStruct.department, room).then
-      (result => {
-        console.log(`insert success: ${room}`);
-      }).catch(error => {
-        console.log(error);
-      });
-      break;
-    case EditType.delete:
-      await db.run('DELETE FROM memberList WHERE name = ? AND room = ?',  name, room).then(result => {
-      }).catch(error => {
-        console.log(error);
-      });
-      break;
-  }
-}
-
-async function memberListData(room) {
-  const db = await memberListDB();
-  if (!db) {
-    console.log('cannot open database');
-    return [];
-  }
-
-  const member = await db.all('SELECT * FROM memberList WHERE room = ?', room);
-
-  return { member };
-}
-
-
-
 // DB の初期化
 // database.db を読み込んで，table を作成する
 async function setupDB() {
@@ -147,9 +94,46 @@ async function initializeData(room, name) {
 
   // console.log('initializeData posts', posts);
   // console.log('initializeData memos', memos);
-  
+
 
   return { posts, memos };
+}
+
+async function memberListDB() {
+  const db = await open({
+    filename: 'memberList.db',
+    driver: sqlite3.Database
+  });
+
+  await db.exec('CREATE TABLE IF NOT EXISTS memberList (name TEXT, grade TEXT, faculty TEXT, department TEXT, room TEXT )');
+  return db
+}
+
+// DB に chatList のデータを挿入する
+async function editMemberList(editType, name, room, memberListStruct) {
+  const db = await memberListDB();
+  if (!db) {
+    console.log('cannot open database');
+    return;
+  }
+  switch (editType) {
+    case EditType.insert:
+      await db.run('INSERT INTO memberList (name, grade, faculty, department, room) VALUES (?, ?, ?, ?, ?)', name, memberListStruct.grade, memberListStruct.faculty, memberListStruct.department, room).then
+        (result => {
+          console.log(`insert success: ${name}, ${memberListStruct.grade}, ${memberListStruct.faculty}, ${memberListStruct.department}, ${room}`);
+        }).catch(error => {
+          console.log(error);
+        });
+      break;
+    case EditType.delete:
+      await db.run('DELETE FROM memberList WHERE name = ? AND room = ?', name, room).then(result => {
+      }).catch(error => {
+        console.log(error);
+      });
+      break;
+  }
+  const members = await db.all('SELECT * FROM memberList WHERE room = ?', room);
+  return { members };
 }
 
 export default (io, socket) => {
@@ -163,20 +147,20 @@ export default (io, socket) => {
   })
 
   socket.on("memberListRequestEvent", (room) => {
-    memberListData(room).then(({ member}) => {
-      socket.emit("memberListReplyEvent", ({ member}));
+    memberListData(room).then(({ member }) => {
+      socket.emit("memberListReplyEvent", ({ member }));
     })
   })
 
   // チャットルームに参加、メッセージをクライアントに送信する
-  socket.on("enterEvent", (name, room) => {
+  socket.on("enterEvent", (name, room, grade, faculty, department) => {
     socket.join(room)
-    socket.broadcast.to(room).emit("enterEvent", name)
+    socket.broadcast.to(room).emit("enterEvent", name, grade, faculty, department)
   })
   // 退室メッセージをクライアントに送信する
-  socket.on("exitEvent", (name, room) => {
+  socket.on("exitEvent", (name, room, grade, faculty, department) => {
     socket.leave(room)
-    socket.broadcast.to(room).emit("exitEvent", name)
+    socket.broadcast.to(room).emit("exitEvent", name, grade, faculty, department)
   })
   // 投稿メッセージを送信するとともに， DB にデータを追加する
   socket.on("publishEvent", (room, time, name, data, type) => {
@@ -188,20 +172,20 @@ export default (io, socket) => {
     }
   })
 
-    socket.on("memberListInsert", (name, grade, faculty, department, room) => {
-      editMemberList(EditType.insert, name, room,{grade, faculty, department});
+  socket.on("memberListInsert", (name, grade, faculty, department, room) => {
+    editMemberList(EditType.insert, name, room, { grade, faculty, department });
 
-      // console.log('initializeData posts', posts);
-          console.log()
-          io.to(room).emit("memberListInsert", name, grade, faculty, department, room);
-      }
-    )
+    // console.log('initializeData posts', posts);
+    console.log()
+    io.to(room).emit("memberListInsert", name, grade, faculty, department, room);
+  }
+  )
 
-    socket.on("memberListDelete", (name,room) => {
-      editMemberList(EditType.delete, name, room,{});
-          io.to(room).emit("memberListDelete", name,room);
-      }
-    )
+  socket.on("memberListDelete", (name, room) => {
+    editMemberList(EditType.delete, name, room, {});
+    io.to(room).emit("memberListDelete", name, room);
+  }
+  )
 
   // チャットルームのリストを取得する
   socket.on('getRooms', () => {
@@ -239,33 +223,5 @@ export default (io, socket) => {
     }
   })
 
-   //ユーザーリストの表示
-  socket.on("userData", (data) => {
-    const userFlag = userList.includes(data)
-    if (!userFlag) {
-      socket.emit("userFlag", false)
-      userList.push(data)
-      socket.emit("connectUser", userList)
-      socket.emit("updateConnectUser", userList)
-    }else{
-      socket.emit("userFlag", true)
-      return
-    }
-    })
-
-
-
-  // //ユーザー情報の重複防止
-  // socket.on("sendUserInformation", (data) => {
-  //   socket.emit("receiveUserInformation", data)
-  //   const userListFlag = userList.includes(data)
-  //   if (!userListFlag) {
-  //     userList.push(data)
-  //     socket.emit("receiveUserList", userList)
-  //     socket.emit("userInformationFlag", false)
-  //   }else{
-  //     socket.emit("userInformationFlag", true)
-  //   }
-  // } )
 }
 
