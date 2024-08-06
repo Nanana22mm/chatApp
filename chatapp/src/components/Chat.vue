@@ -26,9 +26,22 @@ const chatList = reactive([])
 const memberList = reactive([])
 const memoList = reactive([])
 const showModal = ref(false);
+let userData = reactive("")
 // #endregion
 
-let connectUser = []
+let memberList = ref("");
+let newMermberList;
+let updateMemberList;
+let userId;
+
+
+//メンバーリストをルーム名でフィルター
+socket.on("memberList", (data)=>{
+    memberList =  data.filter(i => i.room === urlName)
+    console.log(memberList)
+  }
+)
+
 // クライアントの起動
 onMounted(() => {
   // サーバが DB のデータを送信してきた時に，それを取得できるように準備をしておく
@@ -59,14 +72,14 @@ onMounted(() => {
        department: department,
        room: room
       })
-      console.log(memberList)
+      userData = {
+        name: name,
+        grade: grade,
+        department: department,
+        room: room
+      }
+      console.log(userData)
     });
-
-    socket.on("memberListDelete", async (name, room) => {
-      memberList = memberList.filter(member => !(member.name === name && member.room === room));
-      console.log(memberList)
-    });
-    
   
     socket.on("memberListReplyEvent", async ({member}) => {
       member.forEach(({name, grade, faculty, department, room}) => {
@@ -77,6 +90,7 @@ onMounted(() => {
        department: department,
        room: room
       })
+      
       console.log(memberList)
     });
   });
@@ -88,14 +102,11 @@ onMounted(() => {
 
   // DB のデータを送信するよう，サーバへリクエストを送信する
   socket.emit("initializeRequestEvent", roomName.value, userName.value);
-
-  socket.on("connectUser", (data)=>{
-    console.log(data)
-    connectUser = data
   
-  })
-});
+ }
+)
 // #endregion
+
 
 // 投稿メッセージをサーバに送信する
 const onPublish = () => {
@@ -113,17 +124,39 @@ const onPublish = () => {
   chatContent.value = ""
 }
 
+// // 非同期処理をPromiseで待つ
+// function waitUserId() {
+//     return new Promise((resolve) => {
+//         socket.on('userId', (data) => {
+//             userId = data;
+//             resolve(userId);
+//         });
+//     });
+// }
+
+
+
+
 // 退室メッセージをサーバに送信する
 const onExit = () => {
-  // socket.on("receiveUserInformation", (informationData) => {
-  //   socket.on("receiveUserList", (Listdata)=>{
-  //     const userIndex = Listdata.indeOf(informationData)
-  //     Listdata.splice(index, userIndex)
-  //     socket.emit("exitUserList", Listdata)
-  //     console.log(Listdata)
-  //   })
-  // })
-  socket.emit("memberListDelete", userName.value, roomName.value)
+  //退出したユーザーをメンバーリストするメソッド
+  // async function waitUserId() {
+    //   await waitUserId();
+    //   updateMember();
+    // }
+    // socket.emit("updateMemberList", updateMemberList)
+    
+    socket.on('userId', (data) => {
+      socket.emit("exitUser", data)
+    });
+    //退出したユーザーをメンバーリストから削除する関数
+    function updateMember() {
+      updateMemberList = memberList.filter(
+      i => i.name === data.name && i.grade === data.grade &&i.faculty === data.faculty && i.department === data.department 
+    );
+      socket.emit("updateMemberList", updateMemberList)
+    }
+  
   showModal.value = false;
   socket.emit("exitEvent", userName.value, roomName.value)
 }
@@ -313,10 +346,13 @@ const registerSocketEvent = () => {
     }
   })
 }
+
 /*Open Modal*/
 const openModal = () => {
+  
   showModal.value = true; 
 }
+
 /*Close Modal*/
 const closeModal = () => {
   showModal.value = false
@@ -333,11 +369,11 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
 
 <template>
   <!--Modal Window-->
-  < id="app">
+  <div id="app">
     <div v-if="showModal" id="overlay" @click="closeModal">
       <div id="content" @click.stop>
         <p id="modal-message">本当に退室しますか？</p>
-        <p>{{ memberList.name }}</p>
+        <!-- <p>{{ userList }}</p> -->
         <div class="d-flex justify-content-end">
           <router-link to="/" class="link">
             <button class="btn btn-primary" @click="onExit">はい</button>
@@ -358,37 +394,18 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
         </div>
         <div class="bg-black text-white" style="text-align: center; padding: 10px 0;">
           <h4>{{ urlName }}</h4>
-          <h4 v-for="(user, i) in memberList" :key="i">
-            {{ user.name }}
-            {{ user.department }}
-            {{ user.grade }}
-            {{ user.faculty }}
-          </h4>
         </div>
         <!-- Room Member All -->
-        <h5 style="text-align: center; padding: 5px 0;" ></h5>
-       </div>
+         <div v-for="(user, i) in memberList" :key="i" >
+           <p style="text-align: center; padding: 5px 0;" >
+            {{ user.name }}
+            {{ }}
+            {{ }}
+            {{ }}
+           </p>
+         </div>
       </div>
-  </div>
-    
-  <ul>
-    <li v-for="(user, i) in connectUser" :key="i">
-      {{ user.grade }} 
-      {{ user.faculty }}
-      {{ user.department}} 
-      {{ user.name }} さん
-    </li>
-  </ul>
-  <div class="mx-auto my-5 px-4">
-    <h1 class="text-h3 font-weight-medium">Vue.js Chat チャットルーム</h1>
-    <div class="mt-10">
-      <p>ログインユーザ：{{ userName }}さん</p>
-      <textarea variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area" v-model="Content"></textarea>
-      <div class="mt-5">
-        <button class="button-normal" @click="onPublish">投稿</button>
-        <button class="button-normal util-ml-8px"  @click="onMemo">メモ</button>
-      </div>
-    <!-- Center Space -->
+        <!-- Center Space -->
      <div class="col-9" style="padding: 0;">
       <!-- Question Theme -->
        <div class="room-name" >

@@ -15,55 +15,8 @@ var EditType = {
 
 //ユーザー情報の配列
 let memberList = []
+let updatememberList = [];
 let userChecker = [" "]
-
-async function memberListDB() {
-  const db = await open({
-    filename: 'memberList.db',
-    driver: sqlite3.Database
-  });
-
-  await db.exec('CREATE TABLE IF NOT EXISTS memberList (name TEXT, grade TEXT, faculty TEXT, department TEXT, room TEXT )');
-  return db
-}
-
-// DB に chatList のデータを挿入する
-async function editMemberList(editType, name, room, memberListStruct) {
-  const db = await memberListDB();
-  if (!db) {
-    console.log('cannot open database');
-    return;
-  }
-  switch (editType) {
-    case EditType.insert:
-      await db.run('INSERT INTO memberList (name, grade, faculty, department, room) VALUES (?, ?, ?, ?, ?)',name, memberListStruct.grade, memberListStruct.faculty, memberListStruct.department, room).then
-      (result => {
-        console.log(`insert success: ${room}`);
-      }).catch(error => {
-        console.log(error);
-      });
-      break;
-    case EditType.delete:
-      await db.run('DELETE FROM memberList WHERE name = ? AND room = ?',  name, room).then(result => {
-      }).catch(error => {
-        console.log(error);
-      });
-      break;
-  }
-}
-
-async function memberListData(room) {
-  const db = await memberListDB();
-  if (!db) {
-    console.log('cannot open database');
-    return [];
-  }
-
-  const member = await db.all('SELECT * FROM memberList WHERE room = ?', room);
-
-  return { member };
-}
-
 
 
 // DB の初期化
@@ -253,6 +206,10 @@ export default (io, socket) => {
         socket.broadcast.to(room).emit("receiveDeleteEvent", { index });
         break;
     }
+  })
+
+  socket.on("deleteMemberEvent",function(room, data){
+    
   })
 
   //ユーザーリストの表示
