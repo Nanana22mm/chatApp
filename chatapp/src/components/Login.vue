@@ -127,6 +127,20 @@ const onEnter = (data) => {
     faculty: selectedFaculty.value,
     department: selectedDepartment.value, 
   }
+  
+
+  socket.emit("memberListRequestEvent", roomName.value);
+
+   socket.emit("memberListInsert", 
+    inputUserName.value,
+    selectedGrade.value,
+    selectedFaculty.value,
+    selectedDepartment.value,
+    roomName.value)
+
+  socket.emit("enterEvent", inputUserName.value)
+  //チャット画面へ遷移
+  router.push({ name: "chat", params: { roomName: room }})
 
   // const userchecker = inputUserName.value + selectedGrade.value + selectedFaculty.value + selectedDepartment.value
   

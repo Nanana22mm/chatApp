@@ -23,6 +23,7 @@ const socket = socketManager.getInstance()
 // #region reactive variable
 const Content = ref('')
 const chatList = reactive([])
+const memberList = reactive([])
 const memoList = reactive([])
 const showModal = ref(false);
 // #endregion
@@ -50,6 +51,37 @@ onMounted(() => {
     });
   });
 
+  socket.on("memberListInsert", async (name, grade, faculty, department, room) => {
+      memberList.unshift({
+       name: name,
+       grade: grade,
+       faculty: faculty, 
+       department: department,
+       room: room
+      })
+      console.log(memberList)
+    });
+
+    socket.on("memberListDelete", async (name, room) => {
+      memberList = memberList.filter(member => !(member.name === name && member.room === room));
+      console.log(memberList)
+    });
+    
+  
+    socket.on("memberListReplyEvent", async ({member}) => {
+      member.forEach(({name, grade, faculty, department, room}) => {
+      memberList.unshift({
+       name: name,
+       grade: grade,
+       faculty: faculty, 
+       department: department,
+       room: room
+      })
+      console.log(memberList)
+    });
+  });
+     
+
   // イベントの登録
   registerSocketEvent()
   socket.emit("joinRoom", roomName.value)
@@ -61,7 +93,8 @@ onMounted(() => {
     console.log(data)
     connectUser = data
   
-  })})
+  })
+});
 // #endregion
 
 // 投稿メッセージをサーバに送信する
@@ -82,14 +115,15 @@ const onPublish = () => {
 
 // 退室メッセージをサーバに送信する
 const onExit = () => {
-  socket.on("receiveUserInformation", (informationData) => {
-    socket.on("receiveUserList", (Listdata)=>{
-      const userIndex = Listdata.indeOf(informationData)
-      Listdata.splice(index, userIndex)
-      socket.emit("exitUserList", Listdata)
-      console.log(Listdata)
-    })
-  })
+  // socket.on("receiveUserInformation", (informationData) => {
+  //   socket.on("receiveUserList", (Listdata)=>{
+  //     const userIndex = Listdata.indeOf(informationData)
+  //     Listdata.splice(index, userIndex)
+  //     socket.emit("exitUserList", Listdata)
+  //     console.log(Listdata)
+  //   })
+  // })
+  socket.emit("memberListDelete", userName.value, roomName.value)
   showModal.value = false;
   socket.emit("exitEvent", userName.value, roomName.value)
 }
@@ -188,6 +222,16 @@ const onReceivePublish = (time, name, data) => {
     type: "publish"
   })
 }
+const onReceiveMember = (name, grade, faculty, department, room) => {
+  memberList.unshift({
+    name: name,
+    grade: grade,
+    faculty:faculty,
+    department: department,
+    room : room
+  })
+}
+
 
 // 投稿を削除する
 const onDeletePublish = (index) => {
@@ -247,6 +291,11 @@ const registerSocketEvent = () => {
     onReceivePublish(time, name, data, room)
   })
 
+  socket.on("memberListInsert", (name, grade, faculty, department, room) => {
+    onReceiveMember(name, grade, faculty, department, room)
+  })
+
+
   // 編集された投稿を受信して更新する
   socket.on("receiveEditEvent", function(data) {
     if (chatList[data.index]) {
@@ -284,11 +333,11 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
 
 <template>
   <!--Modal Window-->
-  <div id="app">
+  < id="app">
     <div v-if="showModal" id="overlay" @click="closeModal">
       <div id="content" @click.stop>
         <p id="modal-message">本当に退室しますか？</p>
-        <p>{{ userList }}</p>
+        <p>{{ memberList.name }}</p>
         <div class="d-flex justify-content-end">
           <router-link to="/" class="link">
             <button class="btn btn-primary" @click="onExit">はい</button>
@@ -309,7 +358,7 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
         </div>
         <div class="bg-black text-white" style="text-align: center; padding: 10px 0;">
           <h4>{{ urlName }}</h4>
-          <h4 v-for="(user, i) in userList" :key="i">
+          <h4 v-for="(user, i) in memberList" :key="i">
             {{ user.name }}
             {{ user.department }}
             {{ user.grade }}
