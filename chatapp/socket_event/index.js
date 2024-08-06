@@ -113,12 +113,12 @@ async function memberListDB() {
     driver: sqlite3.Database
   });
 
-  await db.exec('CREATE TABLE IF NOT EXISTS memberList (name TEXT, grade TEXT, faculty TEXT, department TEXT, room TEXT )');
+  await db.exec('CREATE TABLE IF NOT EXISTS memberList (name TEXT, room TEXT)');
   return db
 }
 
 // DB に chatList のデータを挿入する
-async function editMemberList(editType, name, room, memberListStruct) {
+async function editMemberList(editType, name, room) {
   const db = await memberListDB();
   if (!db) {
     console.log('cannot open database');
@@ -126,15 +126,16 @@ async function editMemberList(editType, name, room, memberListStruct) {
   }
   switch (editType) {
     case EditType.insert:
-      await db.run('INSERT INTO memberList (name, grade, faculty, department, room) VALUES (?, ?, ?, ?, ?)', name, memberListStruct.grade, memberListStruct.faculty, memberListStruct.department, room).then
+      await db.run('INSERT INTO memberList (name, room) VALUES (?, ?)', name, room).then
         (result => {
-          console.log(`insert success: ${name}, ${memberListStruct.grade}, ${memberListStruct.faculty}, ${memberListStruct.department}, ${room}`);
+          console.log(`insert success: ${name}, ${room}`);
         }).catch(error => {
           console.log(error);
         });
       break;
     case EditType.delete:
       await db.run('DELETE FROM memberList WHERE name = ? AND room = ?', name, room).then(result => {
+        console.log(`delete success: ${name}, ${room}`);
       }).catch(error => {
         console.log(error);
       });
@@ -157,16 +158,19 @@ export default (io, socket) => {
   })
 
   // チャットルームに参加、メッセージをクライアントに送信する
-  socket.on("enterEvent", (name, room, grade, faculty, department) => {
+  socket.on("enterEvent", (name, room) => {
     socket.join(room)
-    socket.broadcast.to(room).emit("enterEvent", name, room, grade, faculty, department)
-    console.log("enterEvent: ", name, room, grade, faculty, department)
+    socket.broadcast.to(room).emit("enterEvent", name, room)
+    console.log("enterEvent: ", name, room)
   })
 
   // 退室メッセージをクライアントに送信する
-  socket.on("exitEvent", (name, room, grade, faculty, department) => {
-    socket.leave(room)
-    socket.broadcast.to(room).emit("exitEvent", name, grade, faculty, department)
+  socket.on("exitEvent", (name, room) => {
+    editMemberList(EditType.delete, name, room).then(members => {
+      console.log("delete: ", members)
+      socket.leave(room)
+      socket.broadcast.to(room).emit("exitEvent", name, members)
+    })
   })
 
   // 投稿メッセージを送信するとともに， DB にデータを追加する
@@ -219,8 +223,8 @@ export default (io, socket) => {
     }
   })
 
-  socket.on("initializeMemberListRequest", (name, room, grade, faculty, department) => {
-    editMemberList(EditType.insert, name, room, { grade, faculty, department }).then(({ members }) => {
+  socket.on("initializeMemberListRequest", (name, room) => {
+    editMemberList(EditType.insert, name, room).then(({ members }) => {
       console.log("initializeMemberListReply", members);
       socket.emit("initializeMemberListReply", ({ members }));
     })

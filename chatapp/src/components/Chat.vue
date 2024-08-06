@@ -50,12 +50,9 @@ onMounted(() => {
 
   socket.on("initializeMemberListReply", async({members}) => {
     // console.log(members);
-    members.forEach(({name, room, grade, faculty, department}) => {
+    members.forEach(({name, room}) => {
       memberList.unshift({
         name: name, 
-        grade: grade, 
-        faculty: faculty, 
-        department: department, 
         room: room 
       })
     });
@@ -81,7 +78,7 @@ const onPublish = () => {
   const chatTime = new Date()
   var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
 
-  socket.emit("publishEvent",roomName.value, Time, userName.value, Content.value, ChatType.post)
+  socket.emit("publishEvent", roomName.value, Time, userName.value, Content.value, ChatType.post)
 
   // 入力欄を初期化
   Content.value = ""
@@ -91,8 +88,7 @@ const onPublish = () => {
 const onExit = () => {
   showModal.value = false;
 
-  // TODO: revise argument
-  socket.emit("exitEvent", userName.value, roomName.value, name, grade, faculty, department)
+  socket.emit("exitEvent", userName.value, roomName.value)
 }
 
 // メモを画面上に表示する
@@ -155,7 +151,7 @@ const onEditMemo = (index) => {
 }
 
 // サーバから受信した入室メッセージ画面上に表示する
-const onReceiveEnter = (name, room, grade, faculty, department) => {
+const onReceiveEnter = (name, room) => {
   const memoTime = new Date()
   var Time = memoTime.getFullYear() + '/' + ('0' + (memoTime.getMonth() + 1)).slice(-2) + '/' +('0' + memoTime.getDate()).slice(-2) + ' ' +  ('0' + memoTime.getHours()).slice(-2) + ':' + ('0' + memoTime.getMinutes()).slice(-2);
 
@@ -168,14 +164,13 @@ const onReceiveEnter = (name, room, grade, faculty, department) => {
 
   memberList.unshift({
     name: name,
-    grade: grade,
-    faculty: faculty,
-    department: department,
+    room: room
   })
 }
 
 // サーバから受信した退室メッセージを受け取り画面上に表示する
-const onReceiveExit = (name, room, grade, faculty, department) => {
+const onReceiveExit = ({name, members}) => {
+  console.log("enterExit:", members);
   const chatTime = new Date()
   var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
 
@@ -186,12 +181,17 @@ const onReceiveExit = (name, room, grade, faculty, department) => {
     type: "system"
   })
 
-  memberList = memberList.filter((i) => {
-    if (!(i.name === name && i.grade === grade && i.faculty === faculty && i.department === department)) {
-      return true;
-    }
-  })
-  console.log("deletemember:", memberList);
+  const index = memberList.findIndex(member => member.name === name && member.room === roomName.value);
+  if (index !== -1) {
+    memberList.splice(index, 1);
+  }
+  Array.from(members).forEach(({name, room}) => {
+    memberList.unshift({
+      name: name,
+      room: room
+    })
+  });
+  console.log("deletemember:", memberList)
 }
 
 // サーバから受信した投稿メッセージを画面上に表示する
@@ -248,13 +248,13 @@ const onAddPublishintoMemo = (index) => {
 // イベント登録をまとめる
 const registerSocketEvent = () => {
   // 入室イベントを受け取ったら実行
-  socket.on("enterEvent", (name, room, grade, faculty, department) => {
-    onReceiveEnter(name, room, grade, faculty, department)
+  socket.on("enterEvent", (name, room) => {
+    onReceiveEnter(name, room)
   })
 
   // 退室イベントを受け取ったら実行
-  socket.on("exitEvent", (name, grade, faculty, department) => {
-    onReceiveExit(name, grade, faculty, department)
+  socket.on("exitEvent", (name, members) => {
+    onReceiveExit({name, members})
   })
 
   // 投稿イベントを受け取ったら実行
@@ -318,14 +318,11 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
      <div class="col-3" style="padding: 0;">
       <div class="left-side-space">
         <div style="text-align: center;" >
-          <h4 style="line-height: 10vh;" >{{ userName }}</h4>
+          <h4 style="line-height: 10vh;" >{{ userName }} </h4>
         </div>
         <div class="bg-black text-white" style="text-align: center; padding: 10px 0;">
           <h4 v-for="(user, i) in memberList" :key="i">
             {{ user.name }}
-            {{ user.department }}
-            {{ user.grade }}
-            {{ user.faculty }}
           </h4>
         </div>
 
@@ -366,7 +363,7 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
                         <div>&nbsp;</div>
                         <button class="btn btn-danger edit-delete-button" v-if="chat.user === userName" @click="onDeletePublish(i)">削除</button>
                         <div>&nbsp;</div>
-                        <button class="btn btn-secondary edit-delete-button" v-if="chat.user === userName" @click="onAddPublishintoMemo(i)" >→</button>
+                        <button class="btn btn-secondary edit-delete-button" v-if="chat.user != userName" @click="onAddPublishintoMemo(i)" >→</button>
                       </div>
                     </div>
                   </template>
