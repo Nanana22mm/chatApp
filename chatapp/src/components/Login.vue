@@ -120,8 +120,8 @@ const onEnter = (data) => {
   roomName.value = room  
 
   // 入室メッセージを送信
-  socket.emit("initializeMemberListRequest", userName.value, roomName.value, selectedGrade.value, selectedFaculty.value, selectedDepartment.value);
-  socket.emit("enterEvent", userName.value, room)
+  socket.emit("initializeMemberListRequest", inputUserName.value, roomName.value, selectedGrade.value, selectedFaculty.value, selectedDepartment.value);
+  socket.emit("enterEvent", inputUserName.value, roomName.value, selectedGrade.value, selectedFaculty.value, selectedDepartment.value);
   //チャット画面へ遷移
   router.push({ name: "chat", params: { roomName: room }})
 }

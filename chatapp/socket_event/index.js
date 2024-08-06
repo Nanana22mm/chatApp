@@ -157,15 +157,15 @@ export default (io, socket) => {
   })
 
   // チャットルームに参加、メッセージをクライアントに送信する
-  socket.on("enterEvent", (name, room) => {
+  socket.on("enterEvent", (name, room, grade, faculty, department) => {
     socket.join(room)
-    socket.broadcast.to(room).emit("enterEvent", name)
+    socket.broadcast.to(room).emit("enterEvent", name, grade, faculty, department)
   })
 
   // 退室メッセージをクライアントに送信する
-  socket.on("exitEvent", (name, room) => {
+  socket.on("exitEvent", (name, room, grade, faculty, department) => {
     socket.leave(room)
-    socket.broadcast.to(room).emit("exitEvent", name)
+    socket.broadcast.to(room).emit("exitEvent", name, grade, faculty, department)
   })
 
   // 投稿メッセージを送信するとともに， DB にデータを追加する

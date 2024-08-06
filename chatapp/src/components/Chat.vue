@@ -89,16 +89,10 @@ const onPublish = () => {
 
 // 退室メッセージをサーバに送信する
 const onExit = () => {
-  socket.on("receiveUserInformation", (informationData) => {
-    socket.on("receiveUserList", (Listdata)=>{
-      const userIndex = Listdata.indeOf(informationData)
-      Listdata.splice(index, userIndex)
-      socket.emit("exitUserList", Listdata)
-      console.log(Listdata)
-    })
-  })
   showModal.value = false;
-  socket.emit("exitEvent", userName.value, roomName.value)
+
+  // TODO: revise argument
+  socket.emit("exitEvent", userName.value, roomName.value, name, grade, faculty, department)
 }
 
 // メモを画面上に表示する
@@ -161,7 +155,7 @@ const onEditMemo = (index) => {
 }
 
 // サーバから受信した入室メッセージ画面上に表示する
-const onReceiveEnter = (name) => {
+const onReceiveEnter = (name, grade, faculty, department) => {
   const memoTime = new Date()
   var Time = memoTime.getFullYear() + '/' + ('0' + (memoTime.getMonth() + 1)).slice(-2) + '/' +('0' + memoTime.getDate()).slice(-2) + ' ' +  ('0' + memoTime.getHours()).slice(-2) + ':' + ('0' + memoTime.getMinutes()).slice(-2);
 
@@ -171,10 +165,17 @@ const onReceiveEnter = (name) => {
     content: `入室しました。`,
     type: "system"
   })
+
+  memberList.unshift({
+    name: name,
+    grade: grade,
+    faculty: faculty,
+    department: department,
+  })
 }
 
 // サーバから受信した退室メッセージを受け取り画面上に表示する
-const onReceiveExit = (name) => {
+const onReceiveExit = ({name, grade, faculty, department}) => {
   const chatTime = new Date()
   var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
 
@@ -184,6 +185,13 @@ const onReceiveExit = (name) => {
     content: `退室しました。`,
     type: "system"
   })
+
+  memberList = memberList.filter((i) => {
+    if (!(i.name === name && i.grade === grade && i.faculty === faculty && i.department === department)) {
+      return true;
+    }
+  })
+  console.log("deletemember:", memberList);
 }
 
 // サーバから受信した投稿メッセージを画面上に表示する
@@ -240,13 +248,13 @@ const onAddPublishintoMemo = (index) => {
 // イベント登録をまとめる
 const registerSocketEvent = () => {
   // 入室イベントを受け取ったら実行
-  socket.on("enterEvent", (data) => {
-    onReceiveEnter(data)
+  socket.on("enterEvent", (name, grade, faculty, department) => {
+    onReceiveEnter(name, grade, faculty, department)
   })
 
   // 退室イベントを受け取ったら実行
-  socket.on("exitEvent", (data) => {
-    onReceiveExit(data)
+  socket.on("exitEvent", (name, grade, faculty, department) => {
+    onReceiveExit(name, grade, faculty, department)
   })
 
   // 投稿イベントを受け取ったら実行
@@ -273,14 +281,6 @@ const registerSocketEvent = () => {
 }
 /*Open Modal*/
 const openModal = () => {
-  // socket.on("receiveUserInformation", (data) => {
-  //   console.log(data)
-  //   socket.on("receiveUserList", (Listdata)=>{
-  //     const userIndex = Listdata.indeOf(data)
-  //     Listdata.splice(index, userIndex)
-  //     socket.emit("exitUserList", Listdata)
-  //   })
-  // }) 
   showModal.value = true; 
 }
 /*Close Modal*/
@@ -321,7 +321,6 @@ const urlName = decodeURIComponent(currentUrl.substring(currentUrl.lastIndexOf('
           <h4 style="line-height: 10vh;" >{{ userName }}</h4>
         </div>
         <div class="bg-black text-white" style="text-align: center; padding: 10px 0;">
-          <h4>{{ urlName }}</h4>
           <h4 v-for="(user, i) in memberList" :key="i">
             {{ user.name }}
             {{ user.department }}
