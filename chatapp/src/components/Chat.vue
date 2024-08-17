@@ -6,22 +6,17 @@ var ChatType = {
   post: 1,
   memo: 2
 };
-// #region global state
 const userName = inject("userName")
 const roomName = inject("roomName")
-// #endregion
-// #region local variable
 const router = useRouter()
 const socket = socketManager.getInstance()
-// #endregion
-// #region reactive variable
 const Content = ref('')
 const chatList = reactive([])
 const memberList = reactive([])
 const memoList = reactive([])
 const showModal = ref(false);
-// #endregion
 let connectUser = []
+
 // クライアントの起動
 onMounted(() => {
   // サーバが DB のデータを送信してきた時に，それを取得できるように準備をしておく
@@ -33,7 +28,6 @@ onMounted(() => {
         content: data,
         type: "publish"
       })
-      console.log(`${name}さんの投稿 [${time}]: ${data}`);
     });
     memos.forEach(({name, time, data}) => {
       memoList.unshift({
@@ -45,14 +39,12 @@ onMounted(() => {
   });
 
   socket.on("initializeMemberListReply", async({members}) => {
-    // console.log(members);
     members.forEach(({name, room}) => {
       memberList.unshift({
         name: name, 
         room: room 
       })
     });
-    console.log(memberList);
   });
 
   // イベントの登録
@@ -61,11 +53,8 @@ onMounted(() => {
   // DB のデータを送信するよう，サーバへリクエストを送信する
   socket.emit("initializeRequestEvent", roomName.value, userName.value);
   socket.on("connectUser", (data)=>{
-    console.log(data)
     connectUser = data
-  
   })})
-// #endregion
 // 投稿メッセージをサーバに送信する
 const onPublish = () => {
   if (!Content.value || Content.value.match(/^\s*$/g)) {
@@ -156,7 +145,6 @@ const onReceiveEnter = (name, room) => {
 
 // サーバから受信した退室メッセージを受け取り画面上に表示する
 const onReceiveExit = ({name, members}) => {
-  console.log("enterExit:", members);
   const chatTime = new Date()
   var Time = chatTime.getFullYear() + '/' + ('0' + (chatTime.getMonth() + 1)).slice(-2) + '/' +('0' + chatTime.getDate()).slice(-2) + ' ' +  ('0' + chatTime.getHours()).slice(-2) + ':' + ('0' + chatTime.getMinutes()).slice(-2);
   chatList.unshift({
@@ -176,7 +164,6 @@ const onReceiveExit = ({name, members}) => {
       room: room
     })
   });
-  console.log("deletemember:", memberList)
 }
 // サーバから受信した投稿メッセージを画面上に表示する
 const onReceivePublish = (time, name, data) => {
@@ -259,9 +246,6 @@ const registerSocketEvent = () => {
   // 削除された投稿を受信して更新する
   socket.on("receiveDeleteEvent", (data) => {
     if (chatList[data.index]) {
-      console.log(chatList[data.index])
-      console.log(data.index)
-      console.log(data)
       chatList.splice(data.index, 1);
     }
   })

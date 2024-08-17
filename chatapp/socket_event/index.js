@@ -1,6 +1,6 @@
 import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
-import { ref } from 'vue';
+
 var ChatType = {
   post: 1,
   memo: 2
@@ -25,7 +25,7 @@ async function setupDB() {
 async function editDatabase(chatType, editType, name, time, room, chatStruct) {
   const db = await setupDB();
   if (!db) {
-    console.log('cannot open database');
+    console.log('Error: Cannot open database');
     return;
   }
   // 変数の宣言と初期化
@@ -33,28 +33,16 @@ async function editDatabase(chatType, editType, name, time, room, chatStruct) {
   switch (editType) {
     case EditType.insert:
       newData = chatStruct.newData;
-      await db.run('INSERT INTO chatList (name, data, time, room, type) VALUES (?, ?, ?, ?, ?)', name, newData, time, room, chatType).then(result => {
-        console.log(`insert success: ${newData}, ${name}, ${time}, ${room}, ${chatType}`);
-      }).catch(error => {
-        console.log(error);
-      });
+      await db.run('INSERT INTO chatList (name, data, time, room, type) VALUES (?, ?, ?, ?, ?)', name, newData, time, room, chatType);
       break;
     case EditType.delete:
       oldData = chatStruct.oldData;
       switch (chatType) {
         case ChatType.post:
-          await db.run('DELETE FROM chatList WHERE name = ? AND data = ? AND time = ? AND room = ? AND type = ?', name, oldData, time, room, chatType).then(result => {
-            console.log(`delete success: ${oldData}, ${name}, ${time}, ${room}, ${chatType}`);
-          }).catch(error => {
-            console.log(error);
-          });
+          await db.run('DELETE FROM chatList WHERE name = ? AND data = ? AND time = ? AND room = ? AND type = ?', name, oldData, time, room, chatType);
           break;
         case ChatType.memo:
-          await db.run('DELETE FROM chatList WHERE name = ? AND data = ? AND time = ? AND type = ?', name, oldData, time, chatType).then(result => {
-            console.log(`delete success: ${oldData}, ${name}, ${time}, ${chatType}`);
-          }).catch(error => {
-            console.log(error);
-          });
+          await db.run('DELETE FROM chatList WHERE name = ? AND data = ? AND time = ? AND type = ?', name, oldData, time, chatType);
           break;
       }
       break;
@@ -63,38 +51,24 @@ async function editDatabase(chatType, editType, name, time, room, chatStruct) {
       oldData = chatStruct.oldData;
       switch (chatType) {
         case chatType.post:
-          await db.run('UPDATE chatList SET data = ? WHERE name = ? AND data = ? AND time = ? AND room = ? AND type = ?', newData, name, oldData, time, room, chatType).then(result => {
-            console.log(`update success: ${newData}, ${name}, ${time}, ${room}, ${chatType}`);
-          }).catch(error => {
-            console.log(error);
-          });
+          await db.run('UPDATE chatList SET data = ? WHERE name = ? AND data = ? AND time = ? AND room = ? AND type = ?', newData, name, oldData, time, room, chatType);
           break;
         case chatType.memo:
-          await db.run('UPDATE chatList SET data = ? WHERE name = ? AND data = ? AND time = ? AND type = ?', newData, name, oldData, time, chatType).then(result => {
-            console.log(`update success: ${newData}, ${name}, ${time}, ${chatType}`);
-          }).catch(error => {
-            console.log(error);
-          });
+          await db.run('UPDATE chatList SET data = ? WHERE name = ? AND data = ? AND time = ? AND type = ?', newData, name, oldData, time, chatType);
           break;
       }
       break;
   }
-  // const data2 = await db.all('SELECT * FROM chatList WHERE room = ?', room);
-  // console.log(data2);
 }
 // DB のデータを読み込み，データを返す
 async function initializeData(room, name) {
   const db = await setupDB();
   if (!db) {
-    console.log('cannot open database');
+    console.log('Error: Cannot open database');
     return { posts: [], memos: [] };
   }
   const posts = await db.all('SELECT * FROM chatList WHERE room = ? AND type = ?', room, ChatType.post);
   const memos = await db.all('SELECT * FROM chatList WHERE name = ? AND type = ?', name, ChatType.memo);
-
-  // console.log('initializeData posts', posts);
-  // console.log('initializeData memos', memos);
-
 
   return { posts, memos };
 }
@@ -113,24 +87,15 @@ async function memberListDB() {
 async function editMemberList(editType, name, room) {
   const db = await memberListDB();
   if (!db) {
-    console.log('cannot open database');
+    console.log('Error: Cannot open database');
     return;
   }
   switch (editType) {
     case EditType.insert:
-      await db.run('INSERT INTO memberList (name, room) VALUES (?, ?)', name, room).then
-        (result => {
-          console.log(`insert success: ${name}, ${room}`);
-        }).catch(error => {
-          console.log(error);
-        });
+      await db.run('INSERT INTO memberList (name, room) VALUES (?, ?)', name, room);
       break;
     case EditType.delete:
-      await db.run('DELETE FROM memberList WHERE name = ? AND room = ?', name, room).then(result => {
-        console.log(`delete success: ${name}, ${room}`);
-      }).catch(error => {
-        console.log(error);
-      });
+      await db.run('DELETE FROM memberList WHERE name = ? AND room = ?', name, room);
       break;
   }
   const members = await db.all('SELECT * FROM memberList WHERE room = ?', room);
@@ -141,8 +106,6 @@ export default (io, socket) => {
   // 初期化時: クライアントからリクエストを受け取ったら，DB のデータをクライアントに送信する
   socket.on("initializeRequestEvent", (room, name) => {
     initializeData(room, name).then(({ posts, memos }) => {
-      // console.log('request posts', posts);
-      // console.log('request memos', memos);
       socket.emit("initializeReplyEvent", ({ posts, memos }));
     })
   })
@@ -157,12 +120,10 @@ export default (io, socket) => {
   socket.on("enterEvent", (name, room) => {
     socket.join(room)
     socket.broadcast.to(room).emit("enterEvent", name, room)
-    console.log("enterEvent: ", name, room)
   })
   // 退室メッセージをクライアントに送信する
   socket.on("exitEvent", (name, room) => {
     editMemberList(EditType.delete, name, room).then(members => {
-      console.log("delete: ", members)
       socket.leave(room)
       socket.broadcast.to(room).emit("exitEvent", name, members)
     })
@@ -179,18 +140,13 @@ export default (io, socket) => {
 
   socket.on("memberListInsert", (name, grade, faculty, department, room) => {
     editMemberList(EditType.insert, name, room, { grade, faculty, department });
-
-    // console.log('initializeData posts', posts);
-    console.log()
     io.to(room).emit("memberListInsert", name, grade, faculty, department, room);
-  }
-  )
+  })
 
   socket.on("memberListDelete", (name, room) => {
     editMemberList(EditType.delete, name, room, {});
     io.to(room).emit("memberListDelete", name, room);
-  }
-  )
+  })
 
   // チャットルームのリストを取得する
   socket.on('getRooms', () => {
@@ -230,10 +186,7 @@ export default (io, socket) => {
 
   socket.on("initializeMemberListRequest", (name, room) => {
     editMemberList(EditType.insert, name, room).then(({ members }) => {
-      console.log("initializeMemberListReply", members);
       socket.emit("initializeMemberListReply", ({ members }));
     })
   })
 }
-
-
